@@ -1,7 +1,8 @@
 veracode_static_scan:
-  # Independent of analysis_on_platform
-  # push - runs on commit
-  # pull_request - runs on pull_request
+  # push/pull_request trigger run independently of analysis_on_platform
+  # push/pull_request trigger pipeline scan
+  # push - runs on commit to included branches
+  # pull_request - runs on pull_request to target_branch
   push:
     trigger: true
     # Please only specify either branches_to_run or branches_to_exclude
