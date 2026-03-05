@@ -24,6 +24,7 @@ veracode_static_scan:
   # If the analysis_on_platform is set to false, scan results will not be saved to the Veracode platform.
   # analysis_on_platform runs a sandbox scan on pull_request to default_branch / analysis_branch.
   # analysis_on_platform runs a policy scan on pull_request merge to default_branch / analysis_branch.
+  # analysis_on_platform runs a pipeline scan on pull_request to default_branch / analysis_branch. sandbox/policy scan reported to platform in background.
   analysis_on_platform: true
   # If break_build_policy_findings is set to true, the build will break when findings violate the policy.
   break_build_policy_findings: true
