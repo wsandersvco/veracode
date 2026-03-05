@@ -23,7 +23,7 @@ veracode_static_scan:
   # Veracode will save your last scan result, on the default branch, as an application profile with the same name as your scanned repository on the Veracode platform. 
   # If the analysis_on_platform is set to false, scan results will not be saved to the Veracode platform.
   # analysis_on_platform runs a sandbox scan on pull_request to default_branch / analysis_branch.
-  # analysis_on_platform runs a policy scan on pull_request merge to default_branch / analysis branch.
+  # analysis_on_platform runs a policy scan on pull_request merge to default_branch / analysis_branch.
   analysis_on_platform: true
   # If break_build_policy_findings is set to true, the build will break when findings violate the policy.
   break_build_policy_findings: true
