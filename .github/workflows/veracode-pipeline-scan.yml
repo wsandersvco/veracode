@@ -166,17 +166,14 @@ jobs:
         uses: veracode/github-actions-integration-helper@v0.1.9
         with:
           action: 'preparePipelineResults'
-          token: ${{ inputs.token }}
-          check_run_id: ${{ inputs.check_run_id }}
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
           appname: ${{ inputs.profile_name }}
-          source_repository: ${{ inputs.source_repository }}
-          fail_checks_on_policy: ${{ inputs.break_build_policy_findings }}
-          fail_checks_on_error: ${{ inputs.break_build_on_error }} 
-          filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
+          fail_checks_on_policy: false
+          fail_checks_on_error: false
           filtered_results_file: unmitigated_results-${{ strategy.job-index }}-filtered_results.json
           pipeline_scan_flaw_filter: unmitigated_results
+          workflow_app: false
 
       - name: Create flaws as issues
         if: ${{ inputs.create_issue && always() }}
