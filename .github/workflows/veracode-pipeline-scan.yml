@@ -145,6 +145,7 @@ jobs:
 
       - run: |
           mkdir -p unmitigated_results
+          cd unmitigated_results
 
       - name: Veracode Pipeline Results
         if: always()
@@ -161,11 +162,11 @@ jobs:
           fail_checks_on_policy: ${{ inputs.break_build_policy_findings }}
           fail_checks_on_error: ${{ inputs.break_build_on_error }} 
           filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
-          filtered_results_file: unmitigated_results/${{ strategy.job-index }}-filtered_results.json
+          filtered_results_file: ../${{ strategy.job-index }}-filtered_results.json
           pipeline_scan_flaw_filter: unmitigated_results
 
       - run: |
-          ls unmitigated_results   
+          ls .   
 
       - name: Convert pipeline scan output to SARIF format
         if: ${{ inputs.create_code_scanning_alert && always() }}
