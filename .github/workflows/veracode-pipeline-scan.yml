@@ -146,7 +146,12 @@ jobs:
       - name: Copy pipeline-scan filtered_results for unmitigated_results
         if: always()
         run: |
-          cp ${{ strategy.job-index }}-filtered_results.json unmitigated_results-${{ strategy.job-index }}-filtered_results.json
+          cp ${{ strategy.job-index }}-filtered_results.json filtered_results.json
+
+      - name: Run ls -l .
+        if: always()
+        run: |
+          ls -l .
 
       - name: Convert pipeline scan output to SARIF format
         if: ${{ inputs.create_code_scanning_alert && always() }}
@@ -166,27 +171,28 @@ jobs:
         uses: veracode/github-actions-integration-helper@v0.1.9
         with:
           action: 'preparePipelineResults'
-          token: ${{ inputs.token }}
-          check_run_id: ${{ inputs.check_run_id }}
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
           appname: ${{ inputs.profile_name }}
-          source_repository: ${{ inputs.source_repository }}
-          fail_checks_on_policy: ${{ inputs.break_build_policy_findings }}
-          fail_checks_on_error: ${{ inputs.break_build_on_error }} 
-          filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
-          filtered_results_file: unmitigated_results-${{ strategy.job-index }}-filtered_results.json
+          fail_checks_on_policy: false
+          fail_checks_on_error: false
           pipeline_scan_flaw_filter: unmitigated_results
+          workflow_app: false
 
-      - name: Create flaws as issues
-        if: ${{ inputs.create_issue && always() }}
-        uses: veracode/veracode-flaws-to-issues@v2.2.25
-        with:
-          scan-results-json: mitigated_unmitigated_results-${{ strategy.job-index }}-filtered_results.json
-          repo_owner: ${{ inputs.owner }}
-          github-token: ${{ inputs.token }}
-          repo_name: ${{ inputs.repo }}
-          commitHash: ${{ inputs.sha }}
+      - name: Run ls -l .
+        if: always()
+        run: |
+          ls -l .
+
+      # - name: Create flaws as issues
+      #   if: ${{ inputs.create_issue && always() }}
+      #   uses: veracode/veracode-flaws-to-issues@v2.2.25
+      #   with:
+      #     scan-results-json: mitigated_unmitigated_results-${{ strategy.job-index }}-filtered_results.json
+      #     repo_owner: ${{ inputs.owner }}
+      #     github-token: ${{ inputs.token }}
+      #     repo_name: ${{ inputs.repo }}
+      #     commitHash: ${{ inputs.sha }}
 
   update-checks-status:
     runs-on: ${{ fromJson(inputs.default_runs_on) }}

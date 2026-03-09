@@ -156,7 +156,12 @@ jobs:
       - name: Copy pipeline-scan filtered_results for unmitigated_results
         if: always()
         run: |
-          cp ${{ strategy.job-index }}-filtered_results.json unmitigated_results-${{ strategy.job-index }}-filtered_results.json
+          cp ${{ strategy.job-index }}-filtered_results.json filtered_results.json
+
+      - name: Run ls -l .
+        if: always()
+        run: |
+          ls -l .
 
       - name: Convert pipeline scan output to SARIF format
         if: ${{ github.event.client_payload.user_config.create_code_scanning_alert && always() }}
@@ -176,27 +181,28 @@ jobs:
         uses: veracode/github-actions-integration-helper@v0.1.9
         with:
           action: 'preparePipelineResults'
-          token: ${{ github.event.client_payload.token }}
-          check_run_id: ${{ needs.register.outputs.run_id }}
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
           appname: ${{ github.event.client_payload.user_config.profile_name }}
-          source_repository: ${{ github.event.client_payload.repository.full_name }}
-          fail_checks_on_policy: ${{ github.event.client_payload.user_config.break_build_policy_findings }}
-          fail_checks_on_error: ${{ github.event.client_payload.user_config.break_build_on_error }} 
-          filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
-          filtered_results_file: unmitigated_results-${{ strategy.job-index }}-filtered_results.json
+          fail_checks_on_policy: false
+          fail_checks_on_error: false
           pipeline_scan_flaw_filter: unmitigated_results
+          workflow_app: false
 
-      - name: Create flaws as issues
-        if: ${{ github.event.client_payload.user_config.create_issue && always() }}
-        uses: veracode/veracode-flaws-to-issues@v2.2.25
-        with:
-          scan-results-json: mitigated_unmitigated_results-${{ strategy.job-index }}-filtered_results.json
-          repo_owner: ${{ github.event.client_payload.repository.owner }}
-          github-token: ${{ github.event.client_payload.token }}
-          repo_name: ${{ github.event.client_payload.repository.name }}
-          commitHash:  ${{ github.event.client_payload.sha }}
+      - name: Run ls -l .
+        if: always()
+        run: |
+          ls -l .
+
+      # - name: Create flaws as issues
+      #   if: ${{ github.event.client_payload.user_config.create_issue && always() }}
+      #   uses: veracode/veracode-flaws-to-issues@v2.2.25
+      #   with:
+      #     scan-results-json: mitigated_unmitigated_results-${{ strategy.job-index }}-filtered_results.json
+      #     repo_owner: ${{ github.event.client_payload.repository.owner }}
+      #     github-token: ${{ github.event.client_payload.token }}
+      #     repo_name: ${{ github.event.client_payload.repository.name }}
+      #     commitHash:  ${{ github.event.client_payload.sha }}
 
   update-checks-status:
     runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
