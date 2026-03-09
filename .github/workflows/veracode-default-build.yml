@@ -32,6 +32,9 @@ on:
       default_runs_on:
         required: true
         type: string
+      debug:
+        required: false
+        type: string
 
 jobs:
   build-prepare:
@@ -103,7 +106,14 @@ jobs:
             bundle install
             cd ..
           fi
-          veracode package --source source-code --output veracode-artifacts --trust --verbose
+          PACKAGE_CMD="veracode package --source source-code --output veracode-artifacts --trust"
+
+          if [[ "${{ inputs.debug }}" == "true" ]]; then
+            PACKAGE_CMD="$PACKAGE_CMD --verbose"
+          fi
+
+          echo "Running: $PACKAGE_CMD"
+          eval "$PACKAGE_CMD"
 
       # ---------------- Error handler ----------------
       - name: Package error
@@ -185,7 +195,19 @@ jobs:
         run: |
           $working_path = (Get-Location).Path
           "working_dir=$working_path" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          & $env:VERACODE_CLI package --source source-code --output veracode-artifacts --trust --verbose
+          $packageArgs = @(
+            "package",
+            "--source", "source-code",
+            "--output", "veracode-artifacts",
+            "--trust"
+          )
+
+          if ("${{ inputs.debug }}" -eq "true") {
+            $packageArgs += "--verbose"
+          }
+
+          Write-Host "Running: veracode $($packageArgs -join ' ')"
+          & $env:VERACODE_CLI @packageArgs
 
       # ---------------- Error handler ----------------
       - name: Package error

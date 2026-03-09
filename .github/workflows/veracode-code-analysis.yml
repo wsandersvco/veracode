@@ -33,7 +33,13 @@ on:
       - ruby-policy-scan
 
 jobs:
+  cleanup:
+    uses: ./.github/workflows/veracode-clean-up.yml
+    with:
+      runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+
   register:
+    needs: cleanup
     uses: ./.github/workflows/veracode-check-run.yml
     with:
       check_run_name: ${{ github.workflow }} - ${{ contains(github.event.action, 'policy') && 'Policy' || 'Pipeline' }}
@@ -95,6 +101,7 @@ jobs:
       ruby_version: ${{ github.event.client_payload.user_config.ruby_version }}
       bundle_version: ${{ github.event.client_payload.user_config.bundle_version }}
       default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+      debug: ${{ github.event.client_payload.user_config.debug }}
 
   pipeline_scan:
     # needs the build step before this job will start running
@@ -118,6 +125,7 @@ jobs:
       filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
       language: ${{ github.event.client_payload.repository.language }}
       default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+      debug: ${{ github.event.client_payload.user_config.debug }}
     secrets: inherit
 
   policy_scan:
@@ -142,4 +150,5 @@ jobs:
       filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
       language: ${{ github.event.client_payload.repository.language }}
       default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+      debug: ${{ github.event.client_payload.user_config.debug }}
     secrets: inherit

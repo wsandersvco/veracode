@@ -51,6 +51,9 @@ on:
       default_runs_on:
         required: true
         type: string
+      debug:
+        required: false
+        type: string
 
 jobs:
   prepare_pipeline_scan:
@@ -107,7 +110,7 @@ jobs:
       - name: Veracode Pipeline-Scan
         if: always()
         id: pipeline-scan
-        uses: veracode/Veracode-pipeline-scan-action@v1.0.20
+        uses: veracode/Veracode-pipeline-scan-action@v1.0.21
         with:
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
@@ -120,7 +123,7 @@ jobs:
           json_output_file: ${{ strategy.job-index }}-results.json
           filtered_json_output_file: ${{ strategy.job-index }}-filtered_results.json
           artifact_name: ${{ matrix.file }}
-          debug: 1
+          debug: ${{ inputs.debug == true && '1' || '0' }}
           workflow_app: true
     
       - name: Veracode Pipeline Results
@@ -196,10 +199,3 @@ jobs:
                 https://api.github.com/repos/${{ inputs.owner }}/${{ inputs.repo }}/check-runs/${{ inputs.check_run_id }} \
                 -d @"payload.txt"
             done
-
-  cleanup:
-    needs: update-checks-status
-    if: always()
-    uses: ./.github/workflows/veracode-clean-up.yml
-    with:
-      runs_on: ${{ inputs.default_runs_on }}

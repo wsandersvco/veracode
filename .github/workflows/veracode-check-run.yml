@@ -61,7 +61,7 @@ jobs:
           INPUT_NAME: ${{ inputs.check_run_name }}
           INPUT_HEAD_SHA: ${{ inputs.head_sha }}
           INPUT_DETAILS_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ inputs.run_id }}"
- 
+
       - name: Create metadata
         id: create-metadata-json
         run: |

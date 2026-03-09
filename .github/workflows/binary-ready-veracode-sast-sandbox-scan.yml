@@ -11,7 +11,13 @@ on:
     types: [binary-ready-veracode-sast-sandbox-scan]
 
 jobs:
+  cleanup:
+    uses: ./.github/workflows/veracode-clean-up.yml
+    with:
+      runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+
   sandbox_scan:
+    needs: cleanup
     runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
     steps:
       - name: Download artifact
@@ -26,7 +32,7 @@ jobs:
 
       - name: Veracode Upload and Scan Action Step
         id: upload_and_scan
-        uses: veracode/uploadandscan-action@v0.1.9
+        uses: veracode/uploadandscan-action@v0.2.0
         with:
           appname: ${{ github.event.client_payload.user_config.profile_name }}
           createprofile: true
@@ -40,3 +46,5 @@ jobs:
           # include: ${{ github.event.client_payload.modules_to_scan }}
           failbuild: ${{ github.event.client_payload.user_config.break_build_policy_findings }}
           deleteincompletescan: true
+          workflowApp: true
+          debug: ${{ github.event.client_payload.user_config.debug }}

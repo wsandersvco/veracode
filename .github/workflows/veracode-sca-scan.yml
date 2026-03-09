@@ -11,7 +11,13 @@ on:
     types: [veracode-sca-scan]
 
 jobs:
+  cleanup:
+    uses: ./.github/workflows/veracode-clean-up.yml
+    with:
+      runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+
   register:
+    needs: cleanup
     uses: ./.github/workflows/veracode-check-run.yml
     with:
       check_run_name: ${{ github.workflow }}
@@ -146,10 +152,4 @@ jobs:
           recursive: true
           allow-dirty: true
           breakBuildOnPolicyFindings: ${{ github.event.client_payload.user_config.break_build_policy_findings }}
-
-  cleanup:
-    needs: veracode-sca-scan
-    if: always()
-    uses: ./.github/workflows/veracode-clean-up.yml
-    with:
-      runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+          debug: ${{ github.event.client_payload.user_config.debug }}

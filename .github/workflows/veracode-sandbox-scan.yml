@@ -21,7 +21,13 @@ on:
       - ruby-sandbox-scan
 
 jobs:
+  cleanup:
+    uses: ./.github/workflows/veracode-clean-up.yml
+    with:
+      runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+
   build:
+    needs: cleanup
     uses: ./.github/workflows/veracode-build-artifact-for-scanning.yml
     with:
       repository: ${{ github.event.client_payload.repository.full_name }}
@@ -53,7 +59,7 @@ jobs:
 
       # run the policy scan action
       - name: Veracode Upload and Scan Action Step
-        uses: veracode/uploadandscan-action@v0.1.9
+        uses: veracode/uploadandscan-action@v0.2.0
         id: upload_and_scan
         with:
           appname: ${{ github.event.client_payload.user_config.profile_name }}
@@ -68,10 +74,5 @@ jobs:
           failbuild: ${{ github.event.client_payload.user_config.break_build_policy_findings }}
           gitRepositoryUrl: ${{ github.server_url }}/${{ github.event.client_payload.repository.full_name }}
           deleteincompletescan: true
-
-  cleanup:
-    needs: sandbox_scan
-    if: always()
-    uses: ./.github/workflows/veracode-clean-up.yml
-    with:
-      runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+          workflowApp: true
+          debug: ${{ github.event.client_payload.user_config.debug }}
