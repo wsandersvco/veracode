@@ -143,11 +143,10 @@ jobs:
           filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
           filtered_results_file: ${{ strategy.job-index }}-filtered_results.json
 
-      - name: ls -l .
+      - name: Copy pipeline-scan filtered_results for unmitigated_results
         if: always()
         run: |
           cp ${{ strategy.job-index }}-filtered_results.json unmitigated_results-${{ strategy.job-index }}-filtered_results.json
-          ls -l .
 
       - name: Convert pipeline scan output to SARIF format
         if: ${{ inputs.create_code_scanning_alert && always() }}
@@ -178,11 +177,6 @@ jobs:
           filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
           filtered_results_file: unmitigated_results-${{ strategy.job-index }}-filtered_results.json
           pipeline_scan_flaw_filter: unmitigated_results
-
-      - name: ls -l .
-        if: always()
-        run: |
-          ls -l .
 
       - name: Create flaws as issues
         if: ${{ inputs.create_issue && always() }}
