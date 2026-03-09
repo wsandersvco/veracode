@@ -9,3 +9,13 @@ This repository includes the workflows required for the GitHub Workflow Integrat
 
 For guidance on installing the Veracode Workflow Application and additional information about the integration, please view the Veracode documentation.
 https://docs.veracode.com/r/GitHub_Workflow_Integration_for_Repo_Scanning
+
+## Updates
+1. Add the official Veracode GitHub Actions Integration repository as an upstream remote: https://github.com/veracode/github-actions-integration
+2. Fetch the upstream changes.
+3. Merge upstream/main into a feature branch.
+- `git branch upstream-main`
+- `git checkout upstream-main`
+- `git merge upstream/main`
+4. Open a PR into the repository’s main branch to review and resolve any conflicts.
+5. Merge and validate.
