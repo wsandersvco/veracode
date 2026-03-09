@@ -182,7 +182,7 @@ jobs:
         if: ${{ inputs.create_issue && always() }}
         uses: veracode/veracode-flaws-to-issues@v2.2.25
         with:
-          scan-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
+          scan-results-json: mitigated_unmitigated_results-${{ strategy.job-index }}-filtered_results.json
           repo_owner: ${{ inputs.owner }}
           github-token: ${{ inputs.token }}
           repo_name: ${{ inputs.repo }}
