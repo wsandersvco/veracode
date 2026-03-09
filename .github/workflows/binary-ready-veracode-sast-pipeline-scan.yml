@@ -153,11 +153,22 @@ jobs:
           filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
           filtered_results_file: ${{ strategy.job-index }}-filtered_results.json
 
-      - name: mkdir -p unmitigated_results
+      - name: ls -l .
         if: always()
         run: |
-          mkdir -p unmitigated_results
-          cd unmitigated_results
+          ls -l .
+
+      - name: Convert pipeline scan output to SARIF format
+        if: ${{ github.event.client_payload.user_config.create_code_scanning_alert && always() }}
+        uses: Veracode/veracode-pipeline-scan-results-to-sarif@v2.0.4
+        with:
+          pipeline-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
+          output-results-sarif: veracode-results.sarif
+          repo_owner: ${{ github.event.client_payload.repository.owner }}
+          repo_name: ${{ github.event.client_payload.repository.name }}
+          commitSHA: ${{ github.event.client_payload.sha }}
+          ref: ${{ github.event.client_payload.user_config.ref }}
+          githubToken: ${{ github.event.client_payload.token }}
 
       - name: Veracode Pipeline Results (unmitigated_results)
         if: always()
@@ -174,25 +185,13 @@ jobs:
           fail_checks_on_policy: ${{ github.event.client_payload.user_config.break_build_policy_findings }}
           fail_checks_on_error: ${{ github.event.client_payload.user_config.break_build_on_error }} 
           filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
-          filtered_results_file: ../${{ strategy.job-index }}-filtered_results.json
+          filtered_results_file: ${{ strategy.job-index }}-filtered_results.json
           pipeline_scan_flaw_filter: unmitigated_results
 
-      - name: ls .
+      - name: ls -l .
         if: always()
         run: |
-          ls .
-
-      - name: Convert pipeline scan output to SARIF format
-        if: ${{ github.event.client_payload.user_config.create_code_scanning_alert && always() }}
-        uses: Veracode/veracode-pipeline-scan-results-to-sarif@v2.0.4
-        with:
-          pipeline-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
-          output-results-sarif: veracode-results.sarif
-          repo_owner: ${{ github.event.client_payload.repository.owner }}
-          repo_name: ${{ github.event.client_payload.repository.name }}
-          commitSHA: ${{ github.event.client_payload.sha }}
-          ref: ${{ github.event.client_payload.user_config.ref }}
-          githubToken: ${{ github.event.client_payload.token }}
+          ls -l .
 
       - name: Create flaws as issues
         if: ${{ github.event.client_payload.user_config.create_issue && always() }}
