@@ -153,7 +153,9 @@ jobs:
           filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
           filtered_results_file: ${{ strategy.job-index }}-filtered_results.json
 
-      - run: |
+      - name: mkdir -p unmitigated_results
+        if: always()
+        run: |
           mkdir -p unmitigated_results
           cd unmitigated_results
 
@@ -175,7 +177,9 @@ jobs:
           filtered_results_file: ../${{ strategy.job-index }}-filtered_results.json
           pipeline_scan_flaw_filter: unmitigated_results
 
-      - run: |
+      - name: ls .
+        if: always()
+        run: |
           ls .
 
       - name: Convert pipeline scan output to SARIF format
