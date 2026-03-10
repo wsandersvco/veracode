@@ -153,9 +153,7 @@ jobs:
         if: always()
         run: |
           mkdir -p scripts
-          # curl -L -O --output-dir scripts "https://raw.githubusercontent.com/${{ inputs.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/filter_policy_flaws.sh"
           curl -L -O --output-dir scripts "https://raw.githubusercontent.com/${{ inputs.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/remove-mitigations-pipeline-scan.js"
-          # sh ./scripts/filter_policy_flaws.sh "${{ inputs.profile_name }}" "${{ strategy.job-index }}-results.json" "${{ strategy.job-index }}-unmitigated_results.json"
           node scripts/remove-mitigations-pipeline-scan.js "${{ inputs.profile_name }}" ${{ secrets.VERACODE_API_ID }} ${{ secrets.VERACODE_API_KEY }} --pipeline-scan-flaw-filter unmitigated_results --input-file "${{ strategy.job-index }}-results.json" --output-file "${{ strategy.job-index }}-unmitigated_results.json"
 
       - name: Run ls -l .
