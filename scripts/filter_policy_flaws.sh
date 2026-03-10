@@ -83,6 +83,7 @@ fi
 # cp flaws_filtered.json ${output_file}
 
 # Extract file_path, cwe_id, and line_number from policy scan findings that should be excluded
+# Replicate functionality in veracode/github-actions-integration-helper, line 124 to 132 and line 151 to 162
 echo "Start: exclusion criteria"
 jq -r '._embedded.findings[] | select(
   .finding_status.status == "CLOSED" and
