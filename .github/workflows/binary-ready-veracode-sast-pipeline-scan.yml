@@ -174,13 +174,15 @@ jobs:
         id: veracode-pipeline-results-unmitigated-results
         if: always()
         run: |
-          sh ./scripts/filter_policy_flaws.sh "${{ github.event.client_payload.user_config.profile_name }}" "${{ strategy.job-index }}-results.json" "${{ strategy.job-index }}-unmitigated_results.json"
+          mkdir -p scripts
+          curl -L -O --output-dir scripts "https://raw.githubusercontent.com/${{ github.event.client_payload.repository.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/filter_policy_flaws.sh"
+          sh ./filter_policy_flaws.sh "${{ github.event.client_payload.user_config.profile_name }}" "${{ strategy.job-index }}-results.json" "${{ strategy.job-index }}-unmitigated_results.json"
 
       - name: Run ls -l .
         if: always()
         run: |
           ls -l .
-          
+
       - name: Upload Veracode Pipeline Results (unmitigated_results)
         if: ${{ steps.veracode-pipeline-results-unmitigated-results.outcome == 'success' && always() }}
         uses: actions/upload-artifact@v4
