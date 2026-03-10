@@ -153,10 +153,10 @@ jobs:
           filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
           filtered_results_file: ${{ strategy.job-index }}-filtered_results.json
 
-      - name: Copy pipeline-scan filtered_results for unmitigated_results
+      - name: Copy pipeline-scan results.json for unmitigated_results
         if: always()
         run: |
-          cp ${{ strategy.job-index }}-filtered_results.json filtered_results.json
+          cp ${{ strategy.job-index }}-results.json results.json
 
       - name: Run ls -l .
         if: always()
