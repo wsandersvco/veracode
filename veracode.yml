@@ -1,3 +1,4 @@
+debug: true
 veracode_static_scan:
   # push/pull_request trigger run independently of analysis_on_platform
   # push/pull_request trigger pipeline scan
