@@ -207,15 +207,15 @@ jobs:
         run: |
           ls -l .
 
-      # - name: Create flaws as issues
-      #   if: ${{ github.event.client_payload.user_config.create_issue && always() }}
-      #   uses: veracode/veracode-flaws-to-issues@v2.2.25
-      #   with:
-      #     scan-results-json: mitigated_unmitigated_results-${{ strategy.job-index }}-filtered_results.json
-      #     repo_owner: ${{ github.event.client_payload.repository.owner }}
-      #     github-token: ${{ github.event.client_payload.token }}
-      #     repo_name: ${{ github.event.client_payload.repository.name }}
-      #     commitHash:  ${{ github.event.client_payload.sha }}
+      - name: Create flaws as issues
+        if: ${{ github.event.client_payload.user_config.create_issue && always() }}
+        uses: veracode/veracode-flaws-to-issues@v2.2.25
+        with:
+          scan-results-json: unmitigated_results_${{ strategy.job-index }}-pipeline_scan_flaw_filter.json
+          repo_owner: ${{ github.event.client_payload.repository.owner }}
+          github-token: ${{ github.event.client_payload.token }}
+          repo_name: ${{ github.event.client_payload.repository.name }}
+          commitHash:  ${{ github.event.client_payload.sha }}
 
   update-checks-status:
     runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}

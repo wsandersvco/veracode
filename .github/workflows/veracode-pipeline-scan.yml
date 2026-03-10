@@ -197,15 +197,15 @@ jobs:
         run: |
           ls -l .
 
-      # - name: Create flaws as issues
-      #   if: ${{ inputs.create_issue && always() }}
-      #   uses: veracode/veracode-flaws-to-issues@v2.2.25
-      #   with:
-      #     scan-results-json: mitigated_unmitigated_results-${{ strategy.job-index }}-filtered_results.json
-      #     repo_owner: ${{ inputs.owner }}
-      #     github-token: ${{ inputs.token }}
-      #     repo_name: ${{ inputs.repo }}
-      #     commitHash: ${{ inputs.sha }}
+      - name: Create flaws as issues
+        if: ${{ inputs.create_issue && always() }}
+        uses: veracode/veracode-flaws-to-issues@v2.2.25
+        with:
+          scan-results-json: unmitigated_results_${{ strategy.job-index }}-pipeline_scan_flaw_filter.json
+          repo_owner: ${{ inputs.owner }}
+          github-token: ${{ inputs.token }}
+          repo_name: ${{ inputs.repo }}
+          commitHash: ${{ inputs.sha }}
 
   update-checks-status:
     runs-on: ${{ fromJson(inputs.default_runs_on) }}
