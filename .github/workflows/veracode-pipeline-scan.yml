@@ -166,7 +166,7 @@ jobs:
         run: |
           mkdir -p scripts
           curl -L -O --output-dir scripts "https://raw.githubusercontent.com/${{ inputs.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/filter_policy_flaws.sh"
-          sh ./filter_policy_flaws.sh "${{ inputs.profile_name }}" "${{ strategy.job-index }}-results.json" "${{ strategy.job-index }}-unmitigated_results.json"
+          sh ./scripts/filter_policy_flaws.sh "${{ inputs.profile_name }}" "${{ strategy.job-index }}-results.json" "${{ strategy.job-index }}-unmitigated_results.json"
 
       - name: Run ls -l .
         if: always()
