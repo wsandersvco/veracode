@@ -127,6 +127,30 @@ jobs:
           appname: ${{ github.event.client_payload.user_config.profile_name }}
           sandboxname: GitHub App Scans-${{ github.event.client_payload.user_config.sandbox_scan.branch }}
 
+  veracode-unmitigated-results:
+    needs: policy_scan
+    runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
+    container:
+      image: veracode/api-signing
+      env:
+        VERACODE_API_KEY_ID: ${{ secrets.VERACODE_API_ID }}
+        VERACODE_API_KEY_SECRET: ${{ secrets.VERACODE_API_KEY }}
+    if: always()
+    name: Filter unmitigated results
+    steps:
+      - name: Get scan results
+        run: |
+          mkdir -p scripts
+          curl -L -O --output-dir scripts "https://raw.githubusercontent.com/${{ github.event.client_payload.repository.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/remove-mitigations-policy-scan.sh
+          ./scripts/remove-mitigations-policy-scan.sh ${{ secrets.VERACODE_API_ID }} ${{ secrets.VERACODE_API_KEY }} "${{ github.event.client_payload.user_config.profile_name }}" --filter unmitigated_results --output-file /tmp/policy_flaws-unmitigated_results.json
+
+      - name: Veracode Policy Results (unmitigated_results)
+        uses: actions/upload-artifact@v4
+        with:
+          # policy_flaws-unmitigated_results.json
+          name: policy-flaws_unmitigated-results 
+          path: /tmp
+
   code-scanning-alert:
     needs: policy_scan
     runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
@@ -159,7 +183,7 @@ jobs:
           githubToken: ${{ github.event.client_payload.token }}
 
   create-issues:
-    needs: policy_scan
+    needs: [policy_scan, veracode-unmitigated-results]
     if: ${{ github.event.client_payload.user_config.create_issue && always() }}
     runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
     name: Create issues
@@ -174,13 +198,13 @@ jobs:
       - name: Get flaw file
         uses: actions/download-artifact@v4
         with:
-          name: 'policy-flaws'
+          name: 'policy-flaws_unmitigated-results'
           path: /tmp
 
       - name: Create flaws as issues
         uses: veracode/veracode-flaws-to-issues@v2.2.25
         with:
-          scan-results-json: '/tmp/policy_flaws.json'
+          scan-results-json: '/tmp/policy_flaws-unmitigated_results.json'
           repo_owner: ${{ github.event.client_payload.repository.owner }}
           github-token: ${{ github.event.client_payload.token }}
           repo_name: ${{ github.event.client_payload.repository.name }}
