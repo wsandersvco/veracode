@@ -143,17 +143,6 @@ jobs:
           filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
           filtered_results_file: ${{ strategy.job-index }}-filtered_results.json
 
-      # - name: Copy pipeline-scan output for unmitigated_results
-      #   if: always()
-      #   run: |
-      #     cp ${{ strategy.job-index }}-results.json results.json
-      #     cp ${{ strategy.job-index }}-filtered_results.json filtered_results.json
-
-      - name: Run ls -l .
-        if: always()
-        run: |
-          ls -l .
-
       - name: Convert pipeline scan output to SARIF format
         if: ${{ inputs.create_code_scanning_alert && always() }}
         uses: Veracode/veracode-pipeline-scan-results-to-sarif@v2.0.4
@@ -166,47 +155,38 @@ jobs:
           ref: ${{ inputs.ref }}
           githubToken: ${{ inputs.token }}
 
-      # - name: Veracode Pipeline Results (unmitigated_results)
-      #   if: always()
-      #   id: prepare-results-unmitigated-results
-      #   uses: veracode/github-actions-integration-helper@v0.1.9
-      #   with:
-      #     action: 'preparePipelineResults'
-      #     vid: ${{ secrets.VERACODE_API_ID }}
-      #     vkey: ${{ secrets.VERACODE_API_KEY }}
-      #     appname: ${{ inputs.profile_name }}
-      #     fail_checks_on_policy: false
-      #     fail_checks_on_error: false
-      #     pipeline_scan_flaw_filter: unmitigated_results
-      #     workflow_app: false
-
-      # - name: Get pipeline_scan_flaw_filter.json
-      #   id: strategy-pipeline_scan_flaw_filter
-      #   if: always()
-      #   run: |
-      #     cp pipeline_scan_flaw_filter.json unmitigated_results_${{ strategy.job-index }}-pipeline_scan_flaw_filter.json
-
-      # - name: Upload pipeline_scan_flaw_filter.json
-      #   if: ${{ steps.strategy-pipeline_scan_flaw_filter.outcome == 'success' && always() }}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     path: unmitigated_results_${{ strategy.job-index }}-pipeline_scan_flaw_filter.json
-      #     name: Veracode Pipeline-Scan Results - ${{ strategy.job-index }}-pipeline_scan_flaw_filter.json - Unmitigated findings
+      - name: Run ls -l .
+        if: always()
+        run: |
+          ls -l .
+        
+      - name: Veracode Pipeline Results (unmitigated_results)
+        id: veracode-pipeline-results-unmitigated-results
+        if: always()
+        run: |
+          sh ./scripts/filter_policy_flaws.sh "${{ inputs.profile_name }}" "${{ strategy.job-index }}-results.json" "${{ strategy.job-index }}-unmitigated_results.json"
 
       - name: Run ls -l .
         if: always()
         run: |
           ls -l .
 
-      # - name: Create flaws as issues
-      #   if: ${{ inputs.create_issue && always() }}
-      #   uses: veracode/veracode-flaws-to-issues@v2.2.25
-      #   with:
-      #     scan-results-json: unmitigated_results_${{ strategy.job-index }}-pipeline_scan_flaw_filter.json
-      #     repo_owner: ${{ inputs.owner }}
-      #     github-token: ${{ inputs.token }}
-      #     repo_name: ${{ inputs.repo }}
-      #     commitHash: ${{ inputs.sha }}
+      - name: Upload Veracode Pipeline Results (unmitigated_results)
+        if: ${{ steps.veracode-pipeline-results-unmitigated-results.outcome == 'success' && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ strategy.job-index }}-unmitigated_results.json
+          name: Veracode Pipeline-Scan Results - ${{ strategy.job-index }}-unmitigated_results.json - Unmitigated findings
+
+      - name: Create flaws as issues
+        if: ${{ inputs.create_issue && always() }}
+        uses: veracode/veracode-flaws-to-issues@v2.2.25
+        with:
+          scan-results-json: ${{ strategy.job-index }}-unmitigated_results.json
+          repo_owner: ${{ inputs.owner }}
+          github-token: ${{ inputs.token }}
+          repo_name: ${{ inputs.repo }}
+          commitHash: ${{ inputs.sha }}
 
   update-checks-status:
     runs-on: ${{ fromJson(inputs.default_runs_on) }}
