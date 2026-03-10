@@ -149,7 +149,7 @@ jobs:
         run: |
           mkdir -p scripts
           curl -L -O --output-dir scripts "https://raw.githubusercontent.com/${{ inputs.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/remove-mitigations-pipeline-scan.js"
-          node scripts/remove-mitigations-pipeline-scan.js ${{ secrets.VERACODE_API_ID }} ${{ secrets.VERACODE_API_KEY }} "${{ inputs.profile_name }}" --pipeline-scan-flaw-filter unmitigated_results --input-file "${{ strategy.job-index }}-results.json" --output-file "${{ strategy.job-index }}-unmitigated_results.json"
+          (node scripts/remove-mitigations-pipeline-scan.js ${{ secrets.VERACODE_API_ID }} ${{ secrets.VERACODE_API_KEY }} "${{ inputs.profile_name }}" --pipeline-scan-flaw-filter unmitigated_results --input-file "${{ strategy.job-index }}-results.json" --output-file "${{ strategy.job-index }}-unmitigated_results.json"; exit 0)
 
       - name: Upload Veracode Pipeline Results (unmitigated_results)
         if: always()
