@@ -180,11 +180,13 @@ jobs:
           workflow_app: false
 
       - name: Get pipeline_scan_flaw_filter.json
+        id: strategy-pipeline_scan_flaw_filter
         if: always()
         run: |
           cp pipeline_scan_flaw_filter.json unmitigated_results_${{ strategy.job-index }}-pipeline_scan_flaw_filter.json
 
       - name: Upload pipeline_scan_flaw_filter.json
+        if: ${{ steps.strategy-pipeline_scan_flaw_filter.outcome == 'success' && always() }}
         uses: actions/upload-artifact@v4
         with:
           path: unmitigated_results_${{ strategy.job-index }}-pipeline_scan_flaw_filter.json
