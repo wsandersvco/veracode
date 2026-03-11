@@ -32,7 +32,7 @@ jobs:
 
       - name: Veracode Upload and Scan Action Step
         id: upload_and_scan
-        uses: veracode/uploadandscan-action@ccb304b482fffca4ba754c121e36c98380f8ad44 # v0.2.0
+        uses: veracode/uploadandscan-action@540bce452ba00f3038b32ed2b58b58ac054fc34e # v0.2.0
         with:
           appname: ${{ github.event.client_payload.user_config.profile_name }}
           createprofile: true
