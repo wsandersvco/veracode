@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Verify Veracode API credentials
         id: verify_api_creds
-        uses: veracode/github-actions-integration-helper@v0.1.9
+        uses: veracode/github-actions-integration-helper@d9557a88028ce0389840ca3923084117d8671307 # v0.1.9
         with:
           action: validateVeracodeApiCreds
           token: ${{ github.event.client_payload.token }}
@@ -44,7 +44,7 @@ jobs:
       - name: Verify Policy name
         id: verify_policy_name
         if: success()
-        uses: veracode/github-actions-integration-helper@v0.1.9
+        uses: veracode/github-actions-integration-helper@d9557a88028ce0389840ca3923084117d8671307 # v0.1.9
         with:
           action: validatePolicyName
           token: ${{ github.event.client_payload.token }}
@@ -120,7 +120,7 @@ jobs:
       - name: Veracode Pipeline-Scan
         if: always()
         id: pipeline-scan
-        uses: veracode/Veracode-pipeline-scan-action@v1.0.21
+        uses: veracode/Veracode-pipeline-scan-action@e7b4fe35b0cc32c530ca6d9c6737f0f7ea0ba4f7 # v1.0.21
         with:
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
@@ -139,7 +139,7 @@ jobs:
       - name: Veracode Pipeline Results
         if: always()
         id: prepare-results
-        uses: veracode/github-actions-integration-helper@v0.1.9
+        uses: veracode/github-actions-integration-helper@d9557a88028ce0389840ca3923084117d8671307 # v0.1.9
         with:
           action: 'preparePipelineResults'
           token: ${{ github.event.client_payload.token }}
@@ -155,7 +155,7 @@ jobs:
 
       - name: Convert pipeline scan output to SARIF format
         if: ${{ github.event.client_payload.user_config.create_code_scanning_alert && always() }}
-        uses: Veracode/veracode-pipeline-scan-results-to-sarif@v2.0.4
+        uses: Veracode/veracode-pipeline-scan-results-to-sarif@bbb92f8ccedc6c38e07d32c16cf2f690e7b4ba08 # v2.0.4
         with:
           pipeline-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
           output-results-sarif: veracode-results.sarif
@@ -167,7 +167,7 @@ jobs:
 
       - name: Create flaws as issues
         if: ${{ github.event.client_payload.user_config.create_issue && always() }}
-        uses: veracode/veracode-flaws-to-issues@v2.2.25
+        uses: veracode/veracode-flaws-to-issues@6429a56d612e9357a059b685d694ab74c7272eb7 # v2.2.25
         with:
           scan-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
           repo_owner: ${{ github.event.client_payload.repository.owner }}
