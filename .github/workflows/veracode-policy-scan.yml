@@ -145,16 +145,17 @@ jobs:
     steps:
       - name: Get scan results
         run: |
-          mkdir -p scripts
-          curl -L -O --output-dir scripts "https://raw.githubusercontent.com/${{ inputs.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/remove-mitigations-policy-scan.sh
-          ./scripts/remove-mitigations-policy-scan.sh ${{ secrets.VERACODE_API_ID }} ${{ secrets.VERACODE_API_KEY }} "${{ inputs.profile_name }}" --filter unmitigated_results --output-file /tmp/policy_flaws-unmitigated_results.json
+          mkdir -p /tmp/scripts
+          mkdir -p /tmp/output
+          curl -L -O --output-dir /tmp/scripts "https://raw.githubusercontent.com/${{ inputs.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/remove-mitigations-policy-scan.sh
+          /tmp/scripts/remove-mitigations-policy-scan.sh ${{ secrets.VERACODE_API_ID }} ${{ secrets.VERACODE_API_KEY }} "${{ inputs.profile_name }}" --filter unmitigated_results --output-file /tmp/output/policy_flaws-unmitigated_results.json
 
       - name: Veracode Policy Results (unmitigated_results)
         uses: actions/upload-artifact@v4
         with:
           # policy_flaws-unmitigated_results.json
           name: policy-flaws_unmitigated-results 
-          path: /tmp
+          path: /tmp/output
 
   code-scanning-alert:
     needs: policy_scan
