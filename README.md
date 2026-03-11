@@ -22,8 +22,9 @@ https://docs.veracode.com/r/GitHub_Workflow_Integration_for_Repo_Scanning
 
 ## Cherry-pick
 1. Add repository with changes as an upstream remote.
+2. Fetch the upstream changes <upstream/main> or <upstream/feature/branch>
     - `git checkout upstream/main`
-2. Create a new feature branch to stage the changes
+3. Create a new feature branch to stage the changes
     - `git branch -b <feature/branch>`
     - `git restore --patch --source=<feature/branch> -- <folder>`
     - `git commit -m <commit message>`
