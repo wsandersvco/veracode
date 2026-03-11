@@ -28,7 +28,7 @@ https://docs.veracode.com/r/GitHub_Workflow_Integration_for_Repo_Scanning
     - `git checkout upstream/main`
 3. Create a new feature branch to stage the changes
     - `git branch -b <feature/branch>`
-    - `git restore --patch --source=<feature/branch> -- <folder>`
+    - `git restore --patch --source=<upstream/feature/branch> -- <folder>`
     - `git commit -m <commit message>`
     - `git push`
 4. Open a PR into the repository's main branch to review and resolve conflicts.
