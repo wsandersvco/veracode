@@ -147,7 +147,7 @@ jobs:
         run: |
           mkdir -p /tmp/scripts
           mkdir -p /tmp/output
-          curl -L -O --output-dir /tmp/scripts "https://raw.githubusercontent.com/${{ inputs.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/remove-mitigations-policy-scan.sh
+          curl -L -O --output-dir /tmp/scripts "https://raw.githubusercontent.com/${{ inputs.owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/remove-mitigations-policy-scan.sh"
           /tmp/scripts/remove-mitigations-policy-scan.sh ${{ secrets.VERACODE_API_ID }} ${{ secrets.VERACODE_API_KEY }} "${{ inputs.profile_name }}" --filter unmitigated_results --output-file /tmp/output/policy_flaws-unmitigated_results.json
 
       - name: Veracode Policy Results (unmitigated_results)
