@@ -13,6 +13,7 @@ https://docs.veracode.com/r/GitHub_Workflow_Integration_for_Repo_Scanning
 ## Updates
 1. Add the official Veracode GitHub Actions Integration repository as an upstream remote: https://github.com/veracode/github-actions-integration
 2. Fetch the upstream changes.
+    - `git fetch upstream`
     - `git checkout upstream/main`
 3. Merge upstream/main into a feature branch
     - `git checkout -b <feature/branch>`
@@ -23,6 +24,7 @@ https://docs.veracode.com/r/GitHub_Workflow_Integration_for_Repo_Scanning
 ## Cherry-pick
 1. Add repository with changes as an upstream remote.
 2. Fetch the upstream changes <upstream/main> or <upstream/feature/branch>
+    - `git fetch upstream`
     - `git checkout upstream/main`
 3. Create a new feature branch to stage the changes
     - `git branch -b <feature/branch>`
