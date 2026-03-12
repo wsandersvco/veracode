@@ -65,71 +65,71 @@ jobs:
           end_line: ${{ github.event.client_payload.annotationObj.end_line }}
           break_build_invalid_policy: ${{github.event.client_payload.break_build_invalid_policy }}
 
-  # policy_scan:
-  #   needs: [register, validations]
-  #   runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
-  #   steps:
-  #     - name: Download artifact
-  #       id: download-artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         github-token: ${{ github.event.client_payload.token }}
-  #         repository: ${{ github.event.client_payload.repository.full_name }}
-  #         run-id: ${{ github.event.client_payload.run_id }}
-  #         name: ${{ github.event.client_payload.repository.artifact_file }}
-  #         path: ./veracode_artifact_directory
+  policy_scan:
+    needs: [register, validations]
+    runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
+    steps:
+      - name: Download artifact
+        id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.event.client_payload.token }}
+          repository: ${{ github.event.client_payload.repository.full_name }}
+          run-id: ${{ github.event.client_payload.run_id }}
+          name: ${{ github.event.client_payload.repository.artifact_file }}
+          path: ./veracode_artifact_directory
 
-  #     - name: Veracode Upload and Scan Action Step
-  #       uses: veracode/uploadandscan-action@v0.2.0
-  #       id: upload_and_scan
-  #       with:
-  #         vid: '${{ secrets.VERACODE_API_ID }}'
-  #         vkey: '${{ secrets.VERACODE_API_KEY }}'
-  #         appname: ${{ github.event.client_payload.user_config.profile_name }}
-  #         createprofile: true
-  #         version: '${{ github.run_id }}'
-  #         filepath: ./veracode_artifact_directory/
-  #         # include: ${{ github.event.client_payload.modules_to_scan }}
-  #         policy: ${{ github.event.client_payload.policy_name }}
-  #         scantimeout: 30
-  #         failbuild: ${{ github.event.client_payload.user_config.break_build_policy_findings }}
-  #         deleteincompletescan: true
-  #         workflowApp: true
-  #         debug: ${{ github.event.client_payload.user_config.debug }}
+      - name: Veracode Upload and Scan Action Step
+        uses: veracode/uploadandscan-action@v0.2.0
+        id: upload_and_scan
+        with:
+          vid: '${{ secrets.VERACODE_API_ID }}'
+          vkey: '${{ secrets.VERACODE_API_KEY }}'
+          appname: ${{ github.event.client_payload.user_config.profile_name }}
+          createprofile: true
+          version: '${{ github.run_id }}'
+          filepath: ./veracode_artifact_directory/
+          # include: ${{ github.event.client_payload.modules_to_scan }}
+          policy: ${{ github.event.client_payload.policy_name }}
+          scantimeout: 30
+          failbuild: ${{ github.event.client_payload.user_config.break_build_policy_findings }}
+          deleteincompletescan: true
+          workflowApp: true
+          debug: ${{ github.event.client_payload.user_config.debug }}
 
-  #     - name: Veracode Policy Results
-  #       id: prepare-results
-  #       if: always()
-  #       uses: veracode/github-actions-integration-helper@v0.1.9
-  #       with:
-  #         action: 'preparePolicyResults'
-  #         token: ${{ github.event.client_payload.token }}
-  #         check_run_id: ${{ needs.register.outputs.run_id }}
-  #         vid: ${{ secrets.VERACODE_API_ID }}
-  #         vkey: ${{ secrets.VERACODE_API_KEY }}
-  #         appname: ${{ github.event.client_payload.user_config.profile_name }}
-  #         source_repository: ${{ github.event.client_payload.repository.full_name }}
-  #         fail_checks_on_policy: ${{ github.event.client_payload.user_config.break_build_policy_findings }}
-  #         fail_checks_on_error: ${{ github.event.client_payload.user_config.break_build_on_error }}
-  #         filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
+      - name: Veracode Policy Results
+        id: prepare-results
+        if: always()
+        uses: veracode/github-actions-integration-helper@v0.1.9
+        with:
+          action: 'preparePolicyResults'
+          token: ${{ github.event.client_payload.token }}
+          check_run_id: ${{ needs.register.outputs.run_id }}
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+          appname: ${{ github.event.client_payload.user_config.profile_name }}
+          source_repository: ${{ github.event.client_payload.repository.full_name }}
+          fail_checks_on_policy: ${{ github.event.client_payload.user_config.break_build_policy_findings }}
+          fail_checks_on_error: ${{ github.event.client_payload.user_config.break_build_on_error }}
+          filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
 
-  # veracode-remove-sandbox:
-  #   needs: policy_scan
-  #   runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
-  #   if: ${{ github.event.client_payload.user_config.sandbox_scan.execute_remove_sandbox_action && always() }}
-  #   name: Remove Sandbox
-  #   steps:
-  #     - uses: veracode/github-actions-integration-helper@v0.1.9
-  #       with:
-  #         action: 'removeSandbox'
-  #         vid: ${{ secrets.VERACODE_API_ID }}
-  #         vkey: ${{ secrets.VERACODE_API_KEY }}
-  #         appname: ${{ github.event.client_payload.user_config.profile_name }}
-  #         sandboxname: GitHub App Scans-${{ github.event.client_payload.user_config.sandbox_scan.branch }}
+  veracode-remove-sandbox:
+    needs: policy_scan
+    runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
+    if: ${{ github.event.client_payload.user_config.sandbox_scan.execute_remove_sandbox_action && always() }}
+    name: Remove Sandbox
+    steps:
+      - uses: veracode/github-actions-integration-helper@v0.1.9
+        with:
+          action: 'removeSandbox'
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+          appname: ${{ github.event.client_payload.user_config.profile_name }}
+          sandboxname: GitHub App Scans-${{ github.event.client_payload.user_config.sandbox_scan.branch }}
 
   prepare_policy_results:
     if: always()
-    # needs: policy_scan
+    needs: policy_scan
     uses: ./.github/workflows/veracode-policy-results.yml
     with:
       repository_owner: ${{ github.event.client_payload.repository.owner }}
@@ -139,8 +139,7 @@ jobs:
     secrets: inherit
 
   code-scanning-alert:
-    # needs: [policy_scan, prepare_policy_results]
-    needs: prepare_policy_results
+    needs: [policy_scan, prepare_policy_results]
     runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
     if: ${{ github.event.client_payload.user_config.create_code_scanning_alert && always() }}
     name: Create code scanning alerts
@@ -171,8 +170,7 @@ jobs:
           githubToken: ${{ github.event.client_payload.token }}
 
   create-issues:
-    # needs: [policy_scan, prepare_policy_results]
-    needs: prepare_policy_results
+    needs: [policy_scan, prepare_policy_results]
     if: ${{ github.event.client_payload.user_config.create_issue && always() }}
     runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
     name: Create issues

@@ -59,82 +59,82 @@ on:
         type: string
 
 jobs:
-  # policy_scan:
-  #   runs-on: ${{ fromJSON(inputs.default_runs_on) }}
-  #   name: policy scan
+  policy_scan:
+    runs-on: ${{ fromJSON(inputs.default_runs_on) }}
+    name: policy scan
 
-  #   steps:
-  #     - name: checkout repo
-  #       uses: actions/checkout@v4
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
 
-  #     # get the compiled binary from a previous job
-  #     - name: get archive
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: veracode-artifact
-  #         path: ./veracode_artifact_directory
+      # get the compiled binary from a previous job
+      - name: get archive
+        uses: actions/download-artifact@v4
+        with:
+          name: veracode-artifact
+          path: ./veracode_artifact_directory
 
-  #     - name: Set version
-  #       shell: bash
-  #       run: |
-  #         echo "VERSION=${{ github.run_id }}-$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+      - name: Set version
+        shell: bash
+        run: |
+          echo "VERSION=${{ github.run_id }}-$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
 
-  #     # run the policy scan action
-  #     - name: Veracode Upload and Scan Action Step
-  #       uses: veracode/uploadandscan-action@v0.2.0
-  #       id: upload_and_scan
-  #       with:
-  #         appname: ${{ inputs.profile_name }}
-  #         createprofile: true
-  #         policy: ${{ inputs.policy_name }}
-  #         version: '${{ env.VERSION }}'
-  #         filepath: ./veracode_artifact_directory/
-  #         vid: '${{ secrets.VERACODE_API_ID }}'
-  #         vkey: '${{ secrets.VERACODE_API_KEY }}'
-  #         #scanpollinginterval: 30
-  #         scantimeout: 30
-  #         # include: ${{ inputs.modules_to_scan }}
-  #         failbuild: ${{ inputs.break_build_policy_findings }}
-  #         gitRepositoryUrl: ${{ github.server_url }}/${{ inputs.source_repository }}
-  #         deleteincompletescan: true
-  #         workflowApp: true
-  #         debug: ${{ inputs.debug }}
+      # run the policy scan action
+      - name: Veracode Upload and Scan Action Step
+        uses: veracode/uploadandscan-action@v0.2.0
+        id: upload_and_scan
+        with:
+          appname: ${{ inputs.profile_name }}
+          createprofile: true
+          policy: ${{ inputs.policy_name }}
+          version: '${{ env.VERSION }}'
+          filepath: ./veracode_artifact_directory/
+          vid: '${{ secrets.VERACODE_API_ID }}'
+          vkey: '${{ secrets.VERACODE_API_KEY }}'
+          #scanpollinginterval: 30
+          scantimeout: 30
+          # include: ${{ inputs.modules_to_scan }}
+          failbuild: ${{ inputs.break_build_policy_findings }}
+          gitRepositoryUrl: ${{ github.server_url }}/${{ inputs.source_repository }}
+          deleteincompletescan: true
+          workflowApp: true
+          debug: ${{ inputs.debug }}
 
-  #     - name: Veracode Policy Results
-  #       id: prepare-results
-  #       if: always()
-  #       uses: veracode/github-actions-integration-helper@v0.1.9
-  #       with:
-  #         action: 'preparePolicyResults'
-  #         token: ${{ inputs.token }}
-  #         check_run_id: ${{ inputs.check_run_id }}
-  #         vid: ${{ secrets.VERACODE_API_ID }}
-  #         vkey: ${{ secrets.VERACODE_API_KEY }}
-  #         appname: ${{ inputs.profile_name }}
-  #         source_repository: ${{ inputs.source_repository }}
-  #         fail_checks_on_policy: ${{ inputs.break_build_policy_findings }}
-  #         fail_checks_on_error: ${{ inputs.break_build_on_error }}
-  #         filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
-  #         head_sha: ${{ inputs.sha }}
-  #         gitRepositoryUrl: ${{ github.server_url }}/${{ inputs.source_repository }}
+      - name: Veracode Policy Results
+        id: prepare-results
+        if: always()
+        uses: veracode/github-actions-integration-helper@v0.1.9
+        with:
+          action: 'preparePolicyResults'
+          token: ${{ inputs.token }}
+          check_run_id: ${{ inputs.check_run_id }}
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+          appname: ${{ inputs.profile_name }}
+          source_repository: ${{ inputs.source_repository }}
+          fail_checks_on_policy: ${{ inputs.break_build_policy_findings }}
+          fail_checks_on_error: ${{ inputs.break_build_on_error }}
+          filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
+          head_sha: ${{ inputs.sha }}
+          gitRepositoryUrl: ${{ github.server_url }}/${{ inputs.source_repository }}
 
-  # veracode-remove-sandbox:
-  #   needs: policy_scan
-  #   runs-on: ${{ fromJSON(inputs.default_runs_on) }}
-  #   if: ${{ github.event.client_payload.user_config.sandbox_scan.execute_remove_sandbox_action && always() }}
-  #   name: Remove Sandbox
-  #   steps:
-  #     - uses: veracode/github-actions-integration-helper@v0.1.9
-  #       with:
-  #         action: 'removeSandbox'
-  #         vid: ${{ secrets.VERACODE_API_ID }}
-  #         vkey: ${{ secrets.VERACODE_API_KEY }}
-  #         appname: ${{ github.event.client_payload.user_config.profile_name }}
-  #         sandboxname: GitHub App Scans-${{ github.event.client_payload.user_config.sandbox_scan.branch }}
+  veracode-remove-sandbox:
+    needs: policy_scan
+    runs-on: ${{ fromJSON(inputs.default_runs_on) }}
+    if: ${{ github.event.client_payload.user_config.sandbox_scan.execute_remove_sandbox_action && always() }}
+    name: Remove Sandbox
+    steps:
+      - uses: veracode/github-actions-integration-helper@v0.1.9
+        with:
+          action: 'removeSandbox'
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+          appname: ${{ github.event.client_payload.user_config.profile_name }}
+          sandboxname: GitHub App Scans-${{ github.event.client_payload.user_config.sandbox_scan.branch }}
 
   prepare_policy_results:
     if: always()
-    # needs: policy_scan
+    needs: policy_scan
     uses: ./.github/workflows/veracode-policy-results.yml
     with:
       repository_owner: ${{ inputs.owner }}
@@ -144,8 +144,7 @@ jobs:
     secrets: inherit
 
   code-scanning-alert:
-    # needs: [policy_scan, prepare_policy_results]
-    needs: prepare_policy_results
+    needs: [policy_scan, prepare_policy_results]
     runs-on: ${{ fromJSON(inputs.default_runs_on) }}
     if: ${{ inputs.create_code_scanning_alert && always() }}
     name: Create code scanning alerts
@@ -175,8 +174,7 @@ jobs:
           githubToken: ${{ inputs.token }}
 
   create-issues:
-    # needs: [policy_scan, prepare_policy_results]
-    needs: prepare_policy_results
+    needs: [policy_scan, prepare_policy_results]
     if: ${{ inputs.create_issue && always() }}
     runs-on: ${{ fromJSON(inputs.default_runs_on) }}
     name: Create issues
