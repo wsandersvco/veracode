@@ -133,6 +133,7 @@ jobs:
           sandboxname: GitHub App Scans-${{ github.event.client_payload.user_config.sandbox_scan.branch }}
 
   prepare_policy_results:
+    if: always()
     needs: policy_scan
     uses: ./.github/workflows/veracode-policy-results.yml
     with:
