@@ -132,6 +132,15 @@ jobs:
           appname: ${{ github.event.client_payload.user_config.profile_name }}
           sandboxname: GitHub App Scans-${{ github.event.client_payload.user_config.sandbox_scan.branch }}
 
+  prepare_policy_results:
+    needs: policy_scan
+    uses: ./.github/workflows/veracode-policy-results.yml
+    with:
+      repository_owner: ${{ inputs.owner }}
+      default_runs_on: ${{ inputs.default_runs_on }}
+      filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
+      profile_name: ${{ inputs.profile_name }}
+
   code-scanning-alert:
     needs: policy_scan
     runs-on: ${{ fromJSON(inputs.default_runs_on) }}
@@ -163,7 +172,7 @@ jobs:
           githubToken: ${{ inputs.token }}
 
   create-issues:
-    needs: policy_scan
+    needs: [policy_scan, prepare_policy_results]
     if: ${{ inputs.create_issue && always() }}
     runs-on: ${{ fromJSON(inputs.default_runs_on) }}
     name: Create issues

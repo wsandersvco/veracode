@@ -1,0 +1,50 @@
+name: 'Veracode Policy Results'
+on:
+  workflow_call:
+    inputs:
+      repository_owner: 
+        description: 'repository_owner of original commit (provided by GitHub app via `github.event.client_payload.repository.owner`)'
+        required: true
+        type: string
+      profile_name:
+        required: true
+        type: string
+      default_runs_on:
+        required: true
+        type: string
+      filter_mitigated_flaws:
+        required: true
+        type: string
+
+jobs:
+  veracode-policy-results:
+    # needs: policy_scan
+    runs-on: ${{ fromJSON(inputs.default_runs_on) }}
+    container:
+      image: veracode/api-signing
+      env:
+        VERACODE_API_KEY_ID: ${{ secrets.VERACODE_API_ID }}
+        VERACODE_API_KEY_SECRET: ${{ secrets.VERACODE_API_KEY }}
+    if: always()
+    name: Filter unmitigated results
+    steps:
+      - name: Get scan results
+        run: |
+          mkdir -p /tmp/scripts
+          mkdir -p /tmp/output
+          wget -P /tmp/scripts "https://raw.githubusercontent.com/${{ inputs.repository_owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/filter_policy_results.sh"
+          ls -l /tmp/scripts/
+          chmod +x /tmp/scripts/filter_policy_results.sh
+          /tmp/scripts/filter_policy_results.sh ${{ secrets.VERACODE_API_ID }} ${{ secrets.VERACODE_API_KEY }} "${{ inputs.profile_name }}" --filter ${{ case(inputs.filter_mitigated_flaws == 'true', 'unmitigated_policy_violations', 'policy_violations') }} --output-file /tmp/output/policy_flaws.json
+          ls -lr /tmp
+        continue-on-error: true
+
+      - name: Veracode Policy Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          # policy_flaws.json
+          name: policy-flaws
+          path: /tmp/output
+          overwrite: true
+        continue-on-error: true
