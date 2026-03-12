@@ -138,7 +138,7 @@ jobs:
       profile_name: ${{ github.event.client_payload.user_config.profile_name }}
 
   code-scanning-alert:
-    needs: policy_scan
+    needs: [policy_scan, prepare_policy_results]
     runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
     if: ${{ github.event.client_payload.user_config.create_code_scanning_alert && always() }}
     name: Create code scanning alerts
