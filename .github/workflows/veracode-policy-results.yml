@@ -32,7 +32,7 @@ jobs:
         run: |
           mkdir -p /tmp/scripts
           mkdir -p /tmp/output
-          wget -P /tmp/scripts "https://raw.githubusercontent.com/${{ inputs.repository_owner }}/veracode/refs/heads/feature/create-issues-unmitigated-results/scripts/filter_policy_results.sh"
+          wget -P /tmp/scripts "https://raw.githubusercontent.com/${{ inputs.repository_owner }}/veracode/refs/heads/main/scripts/filter_policy_results.sh"
           ls -l /tmp/scripts/
           chmod +x /tmp/scripts/filter_policy_results.sh
           /tmp/scripts/filter_policy_results.sh ${{ secrets.VERACODE_API_ID }} ${{ secrets.VERACODE_API_KEY }} "${{ inputs.profile_name }}" --filter ${{ case(inputs.filter_mitigated_flaws == 'true', 'unmitigated_policy_violations', 'policy_violations') }} --output-file /tmp/output/policy_flaws.json
