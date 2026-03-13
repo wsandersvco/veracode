@@ -143,17 +143,17 @@ jobs:
           filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
           filtered_results_file: ${{ strategy.job-index }}-filtered_results.json
 
-      # - name: Convert pipeline scan output to SARIF format
-      #   if: ${{ inputs.create_code_scanning_alert && always() }}
-      #   uses: Veracode/veracode-pipeline-scan-results-to-sarif@v2.0.4
-      #   with:
-      #     pipeline-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
-      #     output-results-sarif: veracode-results.sarif
-      #     repo_owner: ${{ inputs.owner }}
-      #     repo_name: ${{ inputs.repo }}
-      #     commitSHA: ${{ inputs.sha }}
-      #     ref: ${{ inputs.ref }}
-      #     githubToken: ${{ inputs.token }}
+      - name: Convert pipeline scan output to SARIF format
+        if: ${{ inputs.create_code_scanning_alert && always() }}
+        uses: Veracode/veracode-pipeline-scan-results-to-sarif@v2.0.4
+        with:
+          pipeline-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
+          output-results-sarif: veracode-results.sarif
+          repo_owner: ${{ inputs.owner }}
+          repo_name: ${{ inputs.repo }}
+          commitSHA: ${{ inputs.sha }}
+          ref: ${{ inputs.ref }}
+          githubToken: ${{ inputs.token }}
 
       # - name: Create flaws as issues
       #   if: ${{ inputs.create_issue && always() }}
@@ -228,6 +228,16 @@ jobs:
           path: /tmp/output
           overwrite: true
         continue-on-error: true
+
+      - name: Create flaws as issues
+        if: ${{ inputs.create_issue && always() }}
+        uses: veracode/veracode-flaws-to-issues@v2.2.25
+        with:
+          scan-results-json: /tmp/output/${{ strategy.job-index }}-unmitigated_results.json
+          repo_owner: ${{ inputs.owner }}
+          github-token: ${{ inputs.token }}
+          repo_name: ${{ inputs.repo }}
+          commitHash: ${{ inputs.sha }}
           
   update-checks-status:
     runs-on: ${{ fromJson(inputs.default_runs_on) }}
