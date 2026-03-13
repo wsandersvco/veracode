@@ -210,14 +210,14 @@ jobs:
         run: |
           pwd
           ls -laR .
-      # - name: Get scan results
-      #   run: |
-      #     ls -laR .
-      #     chmod +x scripts/filter_pipeline_results.sh
-      #     mkdir -p /tmp/output
-      #     ./scripts/filter_pipeline_results.sh "${{ inputs.profile_name }}" --filter "unmitigated_results" --input-file ./veracode_results_directory/${{ strategy.job-index }}-results.json --output-file /tmp/output/${{ strategy.job-index }}-unmitigated_results.json
-      #     ls -lr /tmp
-      #   continue-on-error: true
+
+      - name: Get scan results
+        run: |
+          chmod +x veracode_script/scripts/filter_pipeline_results.sh
+          mkdir -p /tmp/output
+          ./veracode_script/scripts/filter_pipeline_results.sh "${{ inputs.profile_name }}" --filter "unmitigated_results" --input-file ./veracode_results_directory/${{ strategy.job-index }}-results.json --output-file /tmp/output/${{ strategy.job-index }}-unmitigated_results.json
+          ls -lr /tmp
+        continue-on-error: true
 
       - name: Veracode Policy Results
         uses: actions/upload-artifact@v4
