@@ -143,28 +143,84 @@ jobs:
           filter_mitigated_flaws: ${{ inputs.filter_mitigated_flaws }}
           filtered_results_file: ${{ strategy.job-index }}-filtered_results.json
 
-      - name: Convert pipeline scan output to SARIF format
-        if: ${{ inputs.create_code_scanning_alert && always() }}
-        uses: Veracode/veracode-pipeline-scan-results-to-sarif@v2.0.4
-        with:
-          pipeline-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
-          output-results-sarif: veracode-results.sarif
-          repo_owner: ${{ inputs.owner }}
-          repo_name: ${{ inputs.repo }}
-          commitSHA: ${{ inputs.sha }}
-          ref: ${{ inputs.ref }}
-          githubToken: ${{ inputs.token }}
+      # - name: Convert pipeline scan output to SARIF format
+      #   if: ${{ inputs.create_code_scanning_alert && always() }}
+      #   uses: Veracode/veracode-pipeline-scan-results-to-sarif@v2.0.4
+      #   with:
+      #     pipeline-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
+      #     output-results-sarif: veracode-results.sarif
+      #     repo_owner: ${{ inputs.owner }}
+      #     repo_name: ${{ inputs.repo }}
+      #     commitSHA: ${{ inputs.sha }}
+      #     ref: ${{ inputs.ref }}
+      #     githubToken: ${{ inputs.token }}
 
-      - name: Create flaws as issues
-        if: ${{ inputs.create_issue && always() }}
-        uses: veracode/veracode-flaws-to-issues@v2.2.25
-        with:
-          scan-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
-          repo_owner: ${{ inputs.owner }}
-          github-token: ${{ inputs.token }}
-          repo_name: ${{ inputs.repo }}
-          commitHash: ${{ inputs.sha }}
+      # - name: Create flaws as issues
+      #   if: ${{ inputs.create_issue && always() }}
+      #   uses: veracode/veracode-flaws-to-issues@v2.2.25
+      #   with:
+      #     scan-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
+      #     repo_owner: ${{ inputs.owner }}
+      #     github-token: ${{ inputs.token }}
+      #     repo_name: ${{ inputs.repo }}
+      #     commitHash: ${{ inputs.sha }}
 
+  veracode-pipeline-results:
+    needs: [prepare_pipeline_scan, pipeline_scan]
+    if: always()
+    runs-on: ubuntu-latest
+    container:
+      image: veracode/api-signing
+      env:
+        VERACODE_API_KEY_ID: ${{ secrets.VERACODE_API_ID }}
+        VERACODE_API_KEY_SECRET: ${{ secrets.VERACODE_API_KEY }}
+      options: --user=1001
+  
+    strategy:
+      matrix:
+        file: ${{fromJson(needs.pipeline_scan.outputs.matrix_files)}}
+
+    name: Filter unmitigated results
+    steps:
+      - name: Debug Matrix Content
+        run: |
+          echo "Raw matrix files: ${{ needs.prepare_pipeline_scan.outputs.matrix_files }}"
+          echo "Current Matrix: ${{ matrix }}"
+          echo "Current File: ${{ matrix.file }}"
+
+      - name: get archive
+        uses: actions/download-artifact@v4
+        with:
+          name: Veracode Pipeline-Scan Results - ${{ matrix.file }}
+          path: ./veracode_results_directory
+
+      - name: Checkout script
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository_owner }}/veracode
+          sparse-checkout: |
+            /scripts/filter_pipeline_results.sh
+          sparse-checkout-cone-mode: false
+          
+      - name: Get scan results
+        run: |
+          ls -laR .
+          chmod +x scripts/filter_pipeline_results.sh
+          mkdir -p /tmp/output
+          ./scripts/filter_pipeline_results.sh "${{ inputs.profile_name }}" --filter "unmitigated_results" --input-file ./veracode_results_directory/${{ strategy.job-index }}-results.json --output-file /tmp/output/${{ strategy.job-index }}-unmitigated_results.json
+          ls -lr /tmp
+        continue-on-error: true
+
+      - name: Veracode Policy Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          # ${{ strategy.job-index }}-unmitigated_results.json
+          name: Veracode Pipeline-Scan Results - ${{ matrix.file }} - unmitigated_results
+          path: /tmp/output
+          overwrite: true
+        continue-on-error: true
+          
   update-checks-status:
     runs-on: ${{ fromJson(inputs.default_runs_on) }}
     needs: pipeline_scan
