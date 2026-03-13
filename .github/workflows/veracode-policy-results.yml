@@ -25,6 +25,7 @@ jobs:
       env:
         VERACODE_API_KEY_ID: ${{ secrets.VERACODE_API_ID }}
         VERACODE_API_KEY_SECRET: ${{ secrets.VERACODE_API_KEY }}
+      options: --user runner
     if: always()
     name: Filter unmitigated results
     steps:
