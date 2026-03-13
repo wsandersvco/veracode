@@ -178,7 +178,7 @@ jobs:
   
     strategy:
       matrix:
-        file: ${{fromJson(needs.pipeline_scan.outputs.matrix_files)}}
+        file: ${{fromJson(needs.prepare_pipeline_scan.outputs.matrix_files)}}
 
     name: Filter unmitigated results
     steps:
@@ -197,7 +197,7 @@ jobs:
       - name: Checkout script
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.repository_owner }}/veracode
+          repository: ${{ inputs.owner }}/veracode
           sparse-checkout: |
             /scripts/filter_pipeline_results.sh
           sparse-checkout-cone-mode: false
