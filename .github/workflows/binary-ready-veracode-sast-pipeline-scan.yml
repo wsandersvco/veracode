@@ -165,11 +165,85 @@ jobs:
           ref: ${{ github.event.client_payload.user_config.ref }}
           githubToken: ${{ github.event.client_payload.token }}
 
+      # - name: Create flaws as issues
+      #   if: ${{ github.event.client_payload.user_config.create_issue && always() }}
+      #   uses: veracode/veracode-flaws-to-issues@v2.2.25
+      #   with:
+      #     scan-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
+      #     repo_owner: ${{ github.event.client_payload.repository.owner }}
+      #     github-token: ${{ github.event.client_payload.token }}
+      #     repo_name: ${{ github.event.client_payload.repository.name }}
+      #     commitHash:  ${{ github.event.client_payload.sha }}
+
+  veracode-pipeline-results:
+    needs: [prepare_pipeline_scan, pipeline_scan]
+    if: always()
+    runs-on: ubuntu-latest
+    container:
+      image: veracode/api-signing
+      env:
+        VERACODE_API_KEY_ID: ${{ secrets.VERACODE_API_ID }}
+        VERACODE_API_KEY_SECRET: ${{ secrets.VERACODE_API_KEY }}
+      options: --user=1001
+  
+    strategy:
+      matrix:
+        file: ${{fromJson(needs.prepare_pipeline_scan.outputs.matrix_files)}}
+
+    name: Filter unmitigated results
+    steps:
+      - name: Debug Matrix Content
+        run: |
+          echo "Raw matrix files: ${{ needs.prepare_pipeline_scan.outputs.matrix_files }}"
+          echo "Current Matrix: ${{ matrix }}"
+          echo "Current File: ${{ matrix.file }}"
+
+      - name: get archive
+        uses: actions/download-artifact@v4
+        with:
+          name: Veracode Pipeline-Scan Results - ${{ matrix.file }}
+          path: ./veracode_results_directory
+
+      - name: get files
+        run: |
+          pwd
+          ls -laR .
+
+      - name: Checkout script
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.client_payload.repository.owner }}/veracode
+          token: ${{ github.event.client_payload.token }}
+          path: veracode_script
+          
+      - name: get files
+        run: |
+          pwd
+          ls -laR .
+
+      - name: Get scan results
+        run: |
+          chmod +x veracode_script/scripts/filter_pipeline_results.sh
+          mkdir -p /tmp/output
+          ./veracode_script/scripts/filter_pipeline_results.sh "${{ github.event.client_payload.user_config.profile_name }}" --filter "unmitigated_results" --input-file ./veracode_results_directory/${{ strategy.job-index }}-results.json --output-file /tmp/output/${{ strategy.job-index }}-unmitigated_results.json
+          ls -lr /tmp
+        continue-on-error: true
+
+      - name: Veracode Policy Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          # ${{ strategy.job-index }}-unmitigated_results.json
+          name: Veracode Pipeline-Scan Results - ${{ matrix.file }} - unmitigated_results
+          path: /tmp/output
+          overwrite: true
+        continue-on-error: true
+
       - name: Create flaws as issues
         if: ${{ github.event.client_payload.user_config.create_issue && always() }}
         uses: veracode/veracode-flaws-to-issues@v2.2.25
         with:
-          scan-results-json: mitigated_${{ strategy.job-index }}-filtered_results.json
+          scan-results-json: /tmp/output/${{ strategy.job-index }}-unmitigated_results.json
           repo_owner: ${{ github.event.client_payload.repository.owner }}
           github-token: ${{ github.event.client_payload.token }}
           repo_name: ${{ github.event.client_payload.repository.name }}
