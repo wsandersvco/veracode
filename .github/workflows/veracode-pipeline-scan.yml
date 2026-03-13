@@ -199,13 +199,14 @@ jobs:
           pwd
           ls -laR .
 
-      # - name: Checkout script
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: ${{ inputs.owner }}/veracode
-      #     sparse-checkout: |
-      #       /scripts/filter_pipeline_results.sh
-      #     sparse-checkout-cone-mode: false
+      - name: Checkout script
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.owner }}/veracode
+          sparse-checkout: |
+            /scripts/filter_pipeline_results.sh
+          sparse-checkout-cone-mode: false
+          path: veracode_script
           
       # - name: Get scan results
       #   run: |
