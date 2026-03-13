@@ -192,11 +192,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Veracode Pipeline-Scan Results - ${{ matrix.file }}
-          path: ${{ github.workspace }}/veracode_results_directory
+          path: ./veracode_results_directory
 
       - name: get files
         run: |
-          ls -laR ${{ github.workspace }}
+          pwd
+          ls -laR .
 
       # - name: Checkout script
       #   uses: actions/checkout@v4
