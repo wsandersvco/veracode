@@ -9,9 +9,6 @@ on:
       profile_name:
         required: true
         type: string
-      default_runs_on:
-        required: true
-        type: string
       filter_mitigated_flaws:
         required: true
         type: string
@@ -19,13 +16,13 @@ on:
 jobs:
   veracode-policy-results:
     # needs: policy_scan
-    runs-on: ${{ fromJSON(inputs.default_runs_on) }}
+    runs-on: ubuntu-latest
     container:
       image: veracode/api-signing
       env:
         VERACODE_API_KEY_ID: ${{ secrets.VERACODE_API_ID }}
         VERACODE_API_KEY_SECRET: ${{ secrets.VERACODE_API_KEY }}
-      options: --user runner
+      options: --user=1001
     if: always()
     name: Filter unmitigated results
     steps:
@@ -38,7 +35,6 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: Get scan results
         run: |
-          ls -lR .
           chmod +x scripts/filter_policy_results.sh
           mkdir -p /tmp/output
           ./scripts/filter_policy_results.sh "${{ inputs.profile_name }}" --filter "unmitigated_results" --output-file /tmp/output/policy_flaws.json
