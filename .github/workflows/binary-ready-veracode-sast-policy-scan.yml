@@ -133,7 +133,6 @@ jobs:
     uses: ./.github/workflows/veracode-policy-results.yml
     with:
       repository_owner: ${{ github.event.client_payload.repository.owner }}
-      default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
       profile_name: ${{ github.event.client_payload.user_config.profile_name }}
       filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
     secrets: inherit
