@@ -192,24 +192,28 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Veracode Pipeline-Scan Results - ${{ matrix.file }}
-          path: ./veracode_results_directory
+          path: ${{ github.workspace }}/veracode_results_directory
 
-      - name: Checkout script
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ inputs.owner }}/veracode
-          sparse-checkout: |
-            /scripts/filter_pipeline_results.sh
-          sparse-checkout-cone-mode: false
-          
-      - name: Get scan results
+      - name: get files
         run: |
-          ls -laR .
-          chmod +x scripts/filter_pipeline_results.sh
-          mkdir -p /tmp/output
-          ./scripts/filter_pipeline_results.sh "${{ inputs.profile_name }}" --filter "unmitigated_results" --input-file ./veracode_results_directory/${{ strategy.job-index }}-results.json --output-file /tmp/output/${{ strategy.job-index }}-unmitigated_results.json
-          ls -lr /tmp
-        continue-on-error: true
+          ls -laR ${{ github.workspace }}
+
+      # - name: Checkout script
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: ${{ inputs.owner }}/veracode
+      #     sparse-checkout: |
+      #       /scripts/filter_pipeline_results.sh
+      #     sparse-checkout-cone-mode: false
+          
+      # - name: Get scan results
+      #   run: |
+      #     ls -laR .
+      #     chmod +x scripts/filter_pipeline_results.sh
+      #     mkdir -p /tmp/output
+      #     ./scripts/filter_pipeline_results.sh "${{ inputs.profile_name }}" --filter "unmitigated_results" --input-file ./veracode_results_directory/${{ strategy.job-index }}-results.json --output-file /tmp/output/${{ strategy.job-index }}-unmitigated_results.json
+      #     ls -lr /tmp
+      #   continue-on-error: true
 
       - name: Veracode Policy Results
         uses: actions/upload-artifact@v4
