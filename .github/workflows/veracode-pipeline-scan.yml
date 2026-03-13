@@ -203,11 +203,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.owner }}/veracode
-          sparse-checkout: |
-            /scripts/filter_pipeline_results.sh
-          sparse-checkout-cone-mode: false
+          token: ${{ github.token }}
           path: veracode_script
           
+      - name: get files
+        run: |
+          pwd
+          ls -laR .
       # - name: Get scan results
       #   run: |
       #     ls -laR .
