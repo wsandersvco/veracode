@@ -28,14 +28,19 @@ jobs:
     if: always()
     name: Filter unmitigated results
     steps:
+      - name: Checkout script
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository_owner }}/veracode
+          sparse-checkout: |
+            /scripts/filter_policy_results.sh
+          sparse-checkout-cone-mode: false
       - name: Get scan results
         run: |
-          mkdir -p /tmp/scripts
+          ls -lR .
+          chmod +x scripts/filter_policy_results.sh
           mkdir -p /tmp/output
-          wget -P /tmp/scripts "https://raw.githubusercontent.com/${{ inputs.repository_owner }}/veracode/refs/heads/main/scripts/filter_policy_results.sh"
-          ls -l /tmp/scripts/
-          chmod +x /tmp/scripts/filter_policy_results.sh
-          /tmp/scripts/filter_policy_results.sh "${{ inputs.profile_name }}" --filter "${{ case(inputs.filter_mitigated_flaws == 'true', 'unmitigated_policy_violations', 'policy_violations') }}" --output-file /tmp/output/policy_flaws.json
+          ./scripts/filter_policy_results.sh "${{ inputs.profile_name }}" --filter "unmitigated_results" --output-file /tmp/output/policy_flaws.json
           ls -lr /tmp
         continue-on-error: true
 
