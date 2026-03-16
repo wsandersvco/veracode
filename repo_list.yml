@@ -17,4 +17,5 @@ exclude_repos:
   - 'veracode'
   - 'github-actions-integration'
   - 'CarrotCakeCMS' # monorepo
+  - 'CarrotCakeCMS-MVC'
   - 'python-lets-be-bad-guys'
