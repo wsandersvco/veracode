@@ -28,9 +28,9 @@ veracode_static_scan:
   # analysis_on_platform runs a pipeline scan on pull_request to default_branch / analysis_branch. sandbox/policy scan reported to platform in background.
   analysis_on_platform: true
   # If break_build_policy_findings is set to true, the build will break when findings violate the policy.
-  break_build_policy_findings: false
+  break_build_policy_findings: true
   # If break_build_invalid_policy is set to true, the build will break when the policy name is invalid.
-  break_build_invalid_policy: false
+  break_build_invalid_policy: true
   # If the break_build_on_error is set to true, the build will break if the scan failed to complete in time or with an error and the error_message will be displayed.
   break_build_on_error: false
   error_message: "Veracode static scan faced a problem. Please contact your Veracode administrator for more information."
