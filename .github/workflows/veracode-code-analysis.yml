@@ -87,8 +87,25 @@ jobs:
           end_line: ${{ github.event.client_payload.annotationObj.end_line }}
           break_build_invalid_policy: ${{github.event.client_payload.break_build_invalid_policy }}
 
-  build:
+  runs_on_validations:
     needs: validations
+    runs-on: ${{ fromJson(github.event.client_payload.user_config.default_runs_on) }}
+    name: Build Validations
+    outputs:
+      override_runs_on: ${{ steps.select-runs-on-action.outputs.runs-on }}
+    steps:
+      - name: Verify Build Mappings
+        id: select-runs-on-action
+        uses: wsandersvc/select-runs-on-action@feature/mapping-from-central-repository
+        with:
+          github-token: ${{ github.event.client_payload.token }}
+          owner: ${{ github.event.client_payload.repository.owner }}
+          repository: veracode
+          default-runs-on: ${{ fromJson(github.event.client_payload.user_config.default_runs_on) }}
+          runs-on-mapping-yaml: runs-on-mapping.yaml
+
+  build:
+    needs: [validations, runs_on_validations]
     uses: ./.github/workflows/veracode-build-artifact-for-scanning.yml
     with:
       repository: ${{ github.event.client_payload.repository.full_name }}
@@ -100,12 +117,12 @@ jobs:
       build_predependency_command: ${{ github.event.client_payload.user_config.build_predependency_command }}
       ruby_version: ${{ github.event.client_payload.user_config.ruby_version }}
       bundle_version: ${{ github.event.client_payload.user_config.bundle_version }}
-      default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+      default_runs_on: ${{ needs.runs_on_validations.outputs.override_runs_on }}
       debug: ${{ github.event.client_payload.user_config.debug }}
 
   pipeline_scan:
     # needs the build step before this job will start running
-    needs: [build, register]
+    needs: [runs_on_validations, build, register]
     if: contains(github.event.action, 'pipeline')
     uses: ./.github/workflows/veracode-pipeline-scan.yml
     with:
@@ -124,12 +141,12 @@ jobs:
       break_build_on_error: ${{ github.event.client_payload.user_config.break_build_on_error }}
       filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
       language: ${{ github.event.client_payload.repository.language }}
-      default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+      default_runs_on: ${{ needs.runs_on_validations.outputs.override_runs_on }}
       debug: ${{ github.event.client_payload.user_config.debug }}
     secrets: inherit
 
   policy_scan:
-    needs: [build, register]
+    needs: [runs_on_validations, build, register]
     if: contains(github.event.action, 'policy')
     uses: ./.github/workflows/veracode-policy-scan.yml
     with:
@@ -149,6 +166,6 @@ jobs:
       break_build_on_error: ${{ github.event.client_payload.user_config.break_build_on_error }}
       filter_mitigated_flaws: ${{ github.event.client_payload.user_config.filter_mitigated_flaws }}
       language: ${{ github.event.client_payload.repository.language }}
-      default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
+      default_runs_on: ${{ needs.runs_on_validations.outputs.override_runs_on }}
       debug: ${{ github.event.client_payload.user_config.debug }}
     secrets: inherit
