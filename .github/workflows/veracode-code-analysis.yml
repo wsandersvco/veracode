@@ -101,7 +101,7 @@ jobs:
           github-token: ${{ github.event.client_payload.token }}
           owner: ${{ github.event.client_payload.repository.owner }}
           repository: veracode
-          default-runs-on: ${{ github.event.client_payload.user_config.default_runs_on }}
+          default-runs-on: ${{ fromJson(github.event.client_payload.user_config.default_runs_on) }}
           runs-on-mapping-yaml: runs-on-mapping.yaml
 
   build:
