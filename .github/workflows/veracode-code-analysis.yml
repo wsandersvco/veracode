@@ -96,7 +96,7 @@ jobs:
     steps:
       - name: Verify Runner Mappings
         id: select-runs-on-action
-        uses: wsandersvc/select-runs-on-action@feature/mapping-from-central-repository
+        uses: wsandersvc/select-runs-on-action@v1.0.6
         with:
           github-token: ${{ github.event.client_payload.token }}
           owner: ${{ github.event.client_payload.repository.owner }}
