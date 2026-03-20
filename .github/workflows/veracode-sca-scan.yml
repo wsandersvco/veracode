@@ -30,9 +30,26 @@ jobs:
       branch: ${{ github.event.client_payload.repository.branch }}
       default_runs_on: ${{ github.event.client_payload.user_config.default_runs_on }}
 
+  runs_on_validations:
+    needs: register
+    runs-on: ${{ fromJson(github.event.client_payload.user_config.default_runs_on) }}
+    name: Runner Validations
+    outputs:
+      override_runs_on: ${{ steps.select-runs-on-action.outputs.runs-on }}
+    steps:          
+      - name: Verify Runner Mappings
+        id: select-runs-on-action
+        uses: wsandersvc/select-runs-on-action@v2
+        with:
+          default-runs-on: ${{ github.event.client_payload.user_config.default_runs_on }}
+          github-token: ${{ github.event.client_payload.token }}
+          owner: ${{ github.event.client_payload.repository.owner }}
+          repository: ${{ github.event.client_payload.repository.name }}
+          runs-on-mapping-yaml: runs-on-mapping.yaml
+
   veracode-sca-scan:
-    needs: [register]
-    runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
+    needs: [runs_on_validations, register]
+    runs-on: ${{ fromJSON(needs.runs_on_validations.outputs.override_runs_on) }}
     name: Veracode Component Analysis
     timeout-minutes: 30
 
@@ -112,7 +129,7 @@ jobs:
                     if ($packageJson -match '"yarn"') {
                         Write-Host "-- Yarn was identified in the package.json file"
                         $match = Select-String '"yarn"' package.json | Select-Object -First 1
-                        $version = ($match.Line -split '\D+' | Where-Object { $_ -match '^\d+$' } | Select-Object -First 1)
+                        $version = ($match.Line -split '\D+' | Where-Object { $_ -match '^\d+ } | Select-Object -First 1)
                         if (-not $version) {
                             Write-Host "-- The yarn version could not be identified."
                         }
