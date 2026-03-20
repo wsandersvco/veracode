@@ -5,3 +5,4 @@ ubuntu-latest:
 windows-latest:
   - verademo-dotnet
   - verademo-netframework
+  - php-goof
