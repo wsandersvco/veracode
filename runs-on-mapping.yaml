@@ -2,6 +2,8 @@ default-runs-on:
   ubuntu-latest:
     - verademo-java
     - verademo-java-mitigated
+  windows-latest:
+    - php-goof
 
 build-runs-on:
   windows-latest:
