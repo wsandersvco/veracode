@@ -96,7 +96,7 @@ jobs:
     steps:          
       - name: Verify Runner Mappings
         id: select-runs-on-action
-        uses: wsandersvc/select-runs-on-action@v2
+        uses: wsandersvc/select-runs-on-action@v3
         with:
           default-runs-on: ${{ github.event.client_payload.user_config.default_runs_on }}
           github-token: ${{ github.event.client_payload.token }}
