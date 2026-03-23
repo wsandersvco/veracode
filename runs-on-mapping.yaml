@@ -1,8 +1,10 @@
-ubuntu-latest:
-  - verademo-java
-  - verademo-java-mitigated
+default-runs-on:
+  ubuntu-latest:
+    - verademo-java
+    - verademo-java-mitigated
 
-windows-latest:
-  - verademo-dotnet
-  - verademo-netframework
-  - php-goof
+build-runs-on:
+  windows-latest:
+    - verademo-dotnet
+    - verademo-netframework
+    - php-goof
