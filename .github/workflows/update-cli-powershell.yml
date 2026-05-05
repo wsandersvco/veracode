@@ -1,0 +1,67 @@
+name: Update the Veracode CLI
+on:
+  # schedule:
+      # - cron: '0 2 * * *'
+  workflow_dispatch:
+jobs:
+  update-veracode-cli:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Update Veracode CLI to latest version
+        shell: pwsh
+        run: |
+          cd helper/cli
+          # Get the first file in the directory                   
+          $cliFile = Get-ChildItem -File | Select-Object -First 1 -ExpandProperty Name
+          Write-Host "Filename: $cliFile"                  
+                                                               
+          # Extract version from filename (get the second part when split by underscore)
+          $parts = $cliFile -split '_'                  
+          $local_version = $parts[1]                                                                                                                                                                                                 
+          Write-Host "Local version: $local_version"
+                                                                                                                                                                                                                                     
+          # Download and read LATEST_VERSION                                                                                                                                                                                         
+          Invoke-WebRequest -Uri "https://tools.veracode.com/veracode-cli/LATEST_VERSION" -OutFile "LATEST_VERSION"
+          $latest_version = (Get-Content "LATEST_VERSION" -Raw).Trim()                                                                                                                                                               
+          Write-Host "Latest version: $latest_version"
+        
+          if ($local_version -eq $latest_version) {                                                                                                                                                                                  
+              Write-Host "We already have the latest version - nothing to do here"
+              Remove-Item -Path "LATEST_VERSION" -Force -ErrorAction SilentlyContinue                                                                                                                                                
+          } else {                               
+              Write-Host "There is a new version we need to download"
+              $downloadUrl = "https://tools.veracode.com/veracode-cli/veracode-cli_${latest_version}_linux_x86.tar.gz"
+              Write-Host "Download URL: $downloadUrl"
+        
+              # Download the files
+              Invoke-WebRequest -Uri $downloadUrl -OutFile "veracode-cli_${latest_version}_linux_x86.tar.gz"
+              Invoke-WebRequest -Uri "https://tools.veracode.com/veracode-cli/install.ps1" -OutFile "veracode-cli_${latest_version}_windows.ps1"
+        
+              # List files
+              Write-Host "Current files:"
+              Get-ChildItem -Force
+        
+              Write-Host "CLEAN UP"
+              Remove-Item -Path "veracode-cli_${local_version}_linux_x86.tar.gz" -Force -ErrorAction SilentlyContinue
+              Remove-Item -Path "LATEST_VERSION" -Force -ErrorAction SilentlyContinue
+        
+              Write-Host "Files after cleanup:"
+              Get-ChildItem -Force
+          }
+      - name: commit back to repo
+        run: |
+          git config --global user.name 'veracode'
+          git config --global user.email 'cli@veracode.com'
+          # Check if there are any changes
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Changes detected — committing and pushing latest CLI."
+            git add -A
+            git commit -m "New CLI Version"
+            git push --verbose
+          else
+            echo "No changes to commit."
+          fi
