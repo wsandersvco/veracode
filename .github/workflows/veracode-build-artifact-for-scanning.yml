@@ -39,7 +39,7 @@ on:
 
 jobs:
   build:
-    if: ${{ inputs.event_name == 'java-pipeline-scan' || inputs.event_name == 'java-policy-scan' || inputs.event_name == 'java-sandbox-scan' || inputs.event_name == 'unidentified-lang-pipeline-scan' || inputs.event_name == 'unidentified-lang-policy-scan' || inputs.event_name == 'unidentified-lang-sandbox-scan' || inputs.event_name == 'dot-net-pipeline-scan' || inputs.event_name == 'dot-net-policy-scan' || inputs.event_name == 'dot-net-sandbox-scan' || inputs.event_name == 'scala-pipeline-scan' || inputs.event_name == 'scala-policy-scan'  || inputs.event_name == 'scala-sandbox-scan' || inputs.event_name == 'go-pipeline-scan' || inputs.event_name == 'go-policy-scan'  || inputs.event_name == 'go-sandbox-scan' || inputs.event_name == 'source-code-pipeline-scan' || inputs.event_name == 'source-code-policy-scan' || inputs.event_name == 'source-code-sandbox-scan' || inputs.event_name == 'ruby-pipeline-scan' || inputs.event_name == 'ruby-policy-scan' || inputs.event_name == 'ruby-sandbox-scan'}}
+    if: ${{ inputs.event_name == 'java-pipeline-scan' || inputs.event_name == 'java-policy-scan' || inputs.event_name == 'java-sandbox-scan' || inputs.event_name == 'unidentified-lang-pipeline-scan' || inputs.event_name == 'unidentified-lang-policy-scan' || inputs.event_name == 'unidentified-lang-sandbox-scan' || inputs.event_name == 'dot-net-pipeline-scan' || inputs.event_name == 'dot-net-policy-scan' || inputs.event_name == 'dot-net-sandbox-scan' || inputs.event_name == 'scala-pipeline-scan' || inputs.event_name == 'scala-policy-scan'  || inputs.event_name == 'scala-sandbox-scan' || inputs.event_name == 'go-pipeline-scan' || inputs.event_name == 'go-policy-scan'  || inputs.event_name == 'go-sandbox-scan' || inputs.event_name == 'source-code-pipeline-scan' || inputs.event_name == 'source-code-policy-scan' || inputs.event_name == 'source-code-sandbox-scan' || inputs.event_name == 'ruby-pipeline-scan' || inputs.event_name == 'ruby-policy-scan' || inputs.event_name == 'ruby-sandbox-scan' || inputs.event_name == 'apex-pipeline-scan' || inputs.event_name == 'apex-policy-scan' || inputs.event_name == 'apex-sandbox-scan' || inputs.event_name == 'perl-pipeline-scan' || inputs.event_name == 'perl-policy-scan' || inputs.event_name == 'perl-sandbox-scan' || inputs.event_name == 'vb6-pipeline-scan' || inputs.event_name == 'vb6-policy-scan' || inputs.event_name == 'vb6-sandbox-scan' || inputs.event_name == 'tsql-pipeline-scan' || inputs.event_name == 'tsql-policy-scan' || inputs.event_name == 'tsql-sandbox-scan' || inputs.event_name == 'plsql-pipeline-scan' || inputs.event_name == 'plsql-policy-scan' || inputs.event_name == 'plsql-sandbox-scan'}}
     uses: ./.github/workflows/veracode-default-build.yml
     with:
       repository: ${{ inputs.repository }}
@@ -53,24 +53,6 @@ jobs:
       event_name: ${{ inputs.event_name }}
       default_runs_on: ${{ inputs.default_runs_on }}
       debug: ${{ inputs.debug }}
-
-  build-tsql-package:
-    if: ${{ inputs.event_name == 'tsql-pipeline-scan' || inputs.event_name == 'tsql-policy-scan'  || inputs.event_name == 'tsql-sandbox-scan'}}
-    uses: ./.github/workflows/veracode-build-tsql.yml
-    with:
-      repository: ${{ inputs.repository }}
-      ref: ${{ inputs.ref }}
-      token: ${{ inputs.token }}
-      default_runs_on: ${{ inputs.default_runs_on }}
-
-  build-plsql-package:
-    if: ${{ inputs.event_name == 'plsql-pipeline-scan' || inputs.event_name == 'plsql-policy-scan'  || inputs.event_name == 'plsql-sandbox-scan'}}
-    uses: ./.github/workflows/veracode-build-plsql.yml
-    with:
-      repository: ${{ inputs.repository }}
-      ref: ${{ inputs.ref }}
-      token: ${{ inputs.token }}
-      default_runs_on: ${{ inputs.default_runs_on }}
 
   build-php-package:
     if: ${{ inputs.event_name == 'php-pipeline-scan' || inputs.event_name == 'php-policy-scan'  || inputs.event_name == 'php-sandbox-scan'}}

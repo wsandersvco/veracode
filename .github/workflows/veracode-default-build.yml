@@ -60,11 +60,11 @@ jobs:
       VERACODE_API_KEY_SECRET: '${{ secrets.VERACODE_API_KEY }}'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'veracode-helper'
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: ${{ inputs.repository }}
           ref: ${{ inputs.ref }}
@@ -84,7 +84,6 @@ jobs:
 
           if [[ "${{ inputs.event_name }}" == *"ruby"* ]]; then
             source /etc/profile.d/rvm.sh
-            rvm pkg install openssl
             rvm install ruby-${{ inputs.ruby_version }}
           fi
 
@@ -92,7 +91,7 @@ jobs:
           echo "working_dir=$working_path" >> "$GITHUB_OUTPUT"
 
           cd veracode-helper/helper/cli
-          cliFile=$(ls -1 *.tar.gz | head -n 1)
+          cliFile=$(ls -1vr *.tar.gz | head -n 1)
           cliFileName=$(echo "$cliFile" | cut -c 1-$((${#cliFile}-7)))
           tar -zxvf $cliFile
           cd $cliFileName
@@ -105,8 +104,14 @@ jobs:
             gem install bundler -v ${{ inputs.bundle_version }}
             bundle install
             cd ..
+            RUBY_API_VERSION=$(echo "${{ inputs.ruby_version }}" | cut -d. -f1,2).0
+            gem uninstall -i /usr/local/rvm/rubies/ruby-${{ inputs.ruby_version }}/lib/ruby/gems/${RUBY_API_VERSION}  rubygems-bundler -a -x
           fi
           PACKAGE_CMD="veracode package --source source-code --output veracode-artifacts --trust"
+
+          if [[ "${{ inputs.event_name }}" =~ "pipeline" ]]; then
+            PACKAGE_CMD="$PACKAGE_CMD --skip-packagers sql,cobol"
+          fi
 
           if [[ "${{ inputs.debug }}" == "true" ]]; then
             PACKAGE_CMD="$PACKAGE_CMD --verbose"
@@ -122,7 +127,7 @@ jobs:
           echo "::error::Veracode static scan faced a problem. Please contact your Veracode administrator for more information."
 
       # ---------------- Upload artifact ----------------
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: veracode-artifact
           path: "${{ steps.application_package_linux.outputs.working_dir }}/veracode-artifacts/*"
@@ -138,27 +143,94 @@ jobs:
       VERACODE_API_KEY_SECRET: '${{ secrets.VERACODE_API_KEY }}'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'veracode-helper'
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: ${{ inputs.repository }}
           ref: ${{ inputs.ref }}
           token: ${{ inputs.token }}
           path: 'source-code'
+          
+      - name: Run Pre-Build Dependency
+        shell: pwsh
+        run: |
+          if (-not [string]::IsNullOrEmpty("${{ inputs.build_predependency_command }}")) {
+            Write-Host "Executing Pre-Build Dependency.."
+            Invoke-Expression "${{ inputs.build_predependency_command }}"
+          } else {
+            Write-Host "No Pre-Build Dependency provided."
+          }
 
       - name: Install Veracode CLI
         shell: pwsh
         run: |
-          $cliFile = Get-ChildItem -Path "./veracode-helper/helper/cli" -Filter *.ps1 | Select-Object -First 1
-          Write-Host "Found CLI install script: $cliFile"
-          Set-ExecutionPolicy Bypass -Scope Process -Force
-          $ProgressPreference = "silentlyContinue"
-          & $cliFile.FullName
-          $VERACODE_CLI = Get-Command veracode | Select-Object -ExpandProperty Definition
-          echo "VERACODE_CLI=$VERACODE_CLI" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $working_path = (Get-Location).Path
+          cd "veracode-helper/helper/cli"
+
+          # Try to find ZIP files first (new format)
+          $zipFiles = Get-ChildItem -Filter "*_windows_x86.zip" -ErrorAction SilentlyContinue
+
+          if ($zipFiles) {
+            # Use ZIP files (new format)
+            $cliFile = $zipFiles | Sort-Object { [version]($_.Name -replace '.*?(\d+\.\d+\.\d+).*','$1') } -Descending | Select-Object -First 1
+            Write-Host "Found CLI ZIP file: $($cliFile.Name)"
+
+            # Extract the ZIP file to a clean directory
+            $extractPath = "./cli-extracted"
+            if (Test-Path $extractPath) {
+              Remove-Item -Path $extractPath -Recurse -Force
+            }
+            Expand-Archive -Path $cliFile.FullName -DestinationPath $extractPath -Force
+
+            # Debug: List contents of extracted directory
+            Write-Host "Contents of extracted directory:"
+            Get-ChildItem -Path $extractPath -Recurse | ForEach-Object { Write-Host "  $($_.FullName)" }
+
+            # Find the veracode.exe in the extracted folder
+            $veracodeExeFiles = Get-ChildItem -Path $extractPath -Name "veracode.exe" -Recurse -ErrorAction SilentlyContinue
+            if ($veracodeExeFiles) {
+              $veracodeExeRelativePath = $veracodeExeFiles | Select-Object -First 1
+              $veracodeFullPath = Join-Path (Get-Location).Path "$extractPath/$veracodeExeRelativePath"
+              $veracodeFullPath = [System.IO.Path]::GetFullPath($veracodeFullPath)
+
+              # Verify the executable exists
+              if (Test-Path $veracodeFullPath) {
+                Write-Host "Veracode CLI path: $veracodeFullPath"
+                echo "VERACODE_CLI=$veracodeFullPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+              } else {
+                Write-Error "Veracode executable not found at expected path: $veracodeFullPath"
+                exit 1
+              }
+            } else {
+              Write-Error "Could not find veracode.exe in the extracted ZIP archive"
+              exit 1
+            }
+          } else {
+            # Fallback to PS1 files (legacy format)
+            $ps1Files = Get-ChildItem -Filter "*.ps1" -ErrorAction SilentlyContinue
+
+            if ($ps1Files) {
+              $cliFile = $ps1Files | Sort-Object { [version]($_.Name -replace '.*?(\d+\.\d+\.\d+).*','$1') } -Descending | Select-Object -First 1
+              Write-Host "Found legacy CLI PS1 script: $($cliFile.Name)"
+              Write-Host "Installing CLI using PowerShell script..."
+
+              Set-ExecutionPolicy Bypass -Scope Process -Force
+              $ProgressPreference = "silentlyContinue"
+              & $cliFile.FullName
+
+              $VERACODE_CLI = Get-Command veracode | Select-Object -ExpandProperty Definition
+              echo "VERACODE_CLI=$VERACODE_CLI" | Out-File -FilePath $env:GITHUB_ENV -Append
+              Write-Host "CLI installed globally, using 'veracode' command"
+            } else {
+              Write-Error "No Veracode CLI files found (neither ZIP nor PS1). Please ensure the update-cli workflow has run successfully."
+              exit 1
+            }
+          }
+
+          cd $working_path
 
       - name: Ensure MSBuild available
         shell: pwsh
@@ -206,6 +278,10 @@ jobs:
             $packageArgs += "--verbose"
           }
 
+          if ("${{ inputs.event_name }}" -like "*pipeline*") {
+            $packageArgs += "--skip-packagers sql,cobol"
+          }
+
           Write-Host "Running: veracode $($packageArgs -join ' ')"
           & $env:VERACODE_CLI @packageArgs
 
@@ -216,7 +292,7 @@ jobs:
           echo "::error::Veracode static scan faced a problem. Please contact your Veracode administrator for more information."
 
       # ---------------- Upload artifact ----------------
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: veracode-artifact
           path: "${{ steps.application_package_windows.outputs.working_dir }}/veracode-artifacts/*"

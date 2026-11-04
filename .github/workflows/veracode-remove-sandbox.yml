@@ -1,6 +1,6 @@
 name: Veracode - Remove Sandbox When Pr Closed or Branch Deleted
 
-run-name: Remove Veracode Sandbox - Profile ${{ github.event.client_payload.repository.name }} - Sandbox ${{ github.event.client_payload.repository.branch }}
+run-name: Remove Veracode Sandbox - Profile ${{ github.event.client_payload.workflow_name }} - Sandbox ${{ github.event.client_payload.repository.branch }}
 
 concurrency:
   group: ${{ github.event.client_payload.event_type }}-${{ github.event.client_payload.repository.name }}-${{ github.event.client_payload.repository.branch }}
@@ -27,7 +27,7 @@ jobs:
         }' > workflow-metadata.json
 
     - name: Save metadata
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: workflow-metadata
         path: workflow-metadata.json
@@ -37,7 +37,7 @@ jobs:
     runs-on: ${{ fromJSON(github.event.client_payload.user_config.default_runs_on) }}
     name: Remove Sandbox
     steps:
-      - uses: veracode/github-actions-integration-helper@v0.1.9
+      - uses: veracode/github-actions-integration-helper@v0.1.12
         with:
           action: 'removeSandbox'
           vid: ${{ secrets.VERACODE_API_ID }}

@@ -1,6 +1,6 @@
 name: Veracode - SAST/SCA Not Supported Repository
 
-run-name: Veracode - SAST/SCA Not Supported Repository - ${{ github.event.client_payload.repository.name }}
+run-name: Veracode - SAST/SCA Not Supported Repository - ${{ github.event.client_payload.workflow_name }}
 
 on:
   repository_dispatch:
@@ -12,8 +12,8 @@ jobs:
     with:
       check_run_name: ${{ github.workflow }}
       head_sha: ${{ github.event.client_payload.sha }}
-      repositroy_owner: ${{ github.event.client_payload.repository.owner }}
-      repositroy_name: ${{ github.event.client_payload.repository.name }}
+      repository_owner: ${{ github.event.client_payload.repository.owner }}
+      repository_name: ${{ github.event.client_payload.repository.name }}
       event_type: ${{ github.event.client_payload.event_type }}
       github_token: ${{ github.event.client_payload.token }}
       run_id: ${{ github.run_id }}
@@ -35,7 +35,7 @@ jobs:
           echo "Please contact your Veracode administrator for more information." >> error.txt
           echo "If you are a Veracode administrator, please contact Veracode support." >> error.txt
       - name: save results file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: veracode-error
           path: error.txt
